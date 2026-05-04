@@ -15,4 +15,5 @@ Visibilizar y poner en valor los servicios ecosistémicos del humedal Vegas de C
 # Roles del equipo de Desarrollo
 
 - Diego Aido: Frontend
-- Felipe Delgado: Líder Técnico / Integración 
+- Felipe Delgado: Backend
+- Diego Jerez: Líder Técnico / Integración
