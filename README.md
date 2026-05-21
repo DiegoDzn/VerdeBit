@@ -13,7 +13,7 @@ Visibilizar y poner en valor los servicios ecosistémicos del humedal Vegas de C
 3. **Vinculación con el entorno:** ejecutar y gestionar actividades como talleres y recorridos de observación que conecten directamente a las familias con el ecosistema.
 4. **Protección ambiental:** fomentar prácticas de cuidado desde el núcleo familiar, consolidando a la comunidad como defensora activa del humedal.
 
-### Incluye
+## Alcance
 
 - Autenticación con roles de estudiante y profesor
 - Catálogo de flora y fauna del humedal
@@ -22,7 +22,6 @@ Visibilizar y poner en valor los servicios ecosistémicos del humedal Vegas de C
 - Calendario comunitario de actividades
 - Módulo "Sabías que..." y sección de cultura Mapuche
 - Perfil del estudiante con progreso acumulado
-
 
 ## Stack
 
@@ -35,6 +34,10 @@ Visibilizar y poner en valor los servicios ecosistémicos del humedal Vegas de C
 | Integración | supabase-js + TypeScript |
 | Lógica de negocio | PostgreSQL, triggers y Row Level Security |
 
+## Documentación
+
+- [Contrato API](docs/CONTRATO_API.md)
+
 ## Estructura del Proyecto
 
 ```text
@@ -45,10 +48,54 @@ Visibilizar y poner en valor los servicios ecosistémicos del humedal Vegas de C
 │   └── frontend/    # App móvil React Native / Expo
 ├── supabase/
 │   ├── migrations/  # Migraciones SQL
-│   ├── policies/    # Políticas RLS documentadas o versionadas
-│   └── seed/        # Datos iniciales o de demostración
+│   └── seed/        # Datos iniciales para poblar la base
 └── README.md
 ```
+
+## Instrucciones de Uso
+
+### 1. Configurar Supabase
+
+Crear un proyecto en Supabase y ejecuta los scripts SQL en este orden desde el SQL Editor:
+
+```text
+supabase/migrations/0001_schema.sql
+supabase/migrations/0002_functions_triggers.sql
+supabase/migrations/0003_rls_policies.sql
+```
+
+Opcional:
+
+```text
+supabase/seed/seed.sql
+```
+
+### 2. Configurar variables del frontend
+
+Crear el archivo local de entorno:
+
+```bash
+cd src/frontend
+cp .env.example .env
+```
+
+Completar en `.env`:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+```
+
+### 3. Instalar y ejecutar la app
+
+```bash
+cd src/frontend
+npm install
+npm run typecheck
+npm run start
+```
+
+Con `npm run start`, Expo permite abrir la app en Expo go
 
 ## Equipo de Desarrollo
 
