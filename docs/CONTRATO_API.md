@@ -1,6 +1,6 @@
 # Contrato API
 
-Este documento define como se conectara la app movil de Escuela Reducción Monte Verde con Supabase. La app no tendra un backend propio por ahora, usara los endpoints que Supabase entrega para autenticacion y para consultar las tablas creadas en las migraciones SQL del proyecto
+Este documento define como se conectara la app movil de Escuela Monteverde con Supabase. La app no tendra un backend propio por ahora, usara los endpoints que Supabase entrega para autenticacion y para consultar las tablas creadas en las migraciones SQL del proyecto
 
 ## Base de la API
 
@@ -52,16 +52,6 @@ Prefer: return=representation
 
 El rol se guarda en `profiles.role` las politicas RLS revisan este dato para permitir o bloquear operaciones
 
-el rol no se define desde la app, todo usuario registrado desde la app se crea como `student`, para convertir una cuenta en `teacher`, se debe realizar una operacion administrativa desde Supabase
-
-Ejemplo:
-
-```sql
-update public.profiles
-   set role = 'teacher'
- where id = '<user_id>';
-```
-
 
 ## Codigos de Respuesta
 
@@ -93,7 +83,8 @@ Body:
   "email": "estudiantecolegio@gmail.com",
   "password": "123456",
   "data": {
-    "full_name": "juan perez"
+    "full_name": "juan perez",
+    "role": "student"
   }
 }
 ```
@@ -102,8 +93,7 @@ Respuesta esperada:
 
 - usuario creado;
 - sesion iniciada;
-- creacion automaetica de `profiles` mediante el trigger `handle_new_user`;
-- perfil creado con rol `student`
+- creacion automaetica de `profiles` mediante el trigger `handle_new_user`.
 
 ### Iniciar sesion
 
@@ -167,7 +157,7 @@ Tabla: `profiles`
 | --- | --- | --- | --- |
 | Listar perfiles | `GET /rest/v1/profiles?select=*` | Usuario autenticado | `Profile[]` |
 | Obtener mi perfil | `GET /rest/v1/profiles?id=eq.{user_id}&select=*` | Usuario autenticado | `Profile[]` |
-| Actualizar mi perfil | `PATCH /rest/v1/profiles?id=eq.{user_id}` | Dueno del perfil, solo datos editables | `Profile[]` |
+| Actualizar mi perfil | `PATCH /rest/v1/profiles?id=eq.{user_id}` | Dueno del perfil | `Profile[]` |
 
 Campos principales:
 
@@ -178,15 +168,6 @@ Campos principales:
   "full_name": "juan perez",
   "avatar_url": null,
   "total_points": 0
-}
-```
-
-Body permitido para actualizar perfil:
-
-```json
-{
-  "full_name": "Juan Perez",
-  "avatar_url": "https://example.com/avatar.png"
 }
 ```
 
@@ -448,3 +429,4 @@ Tabla: `mapuche_content`
 | `Event` | `events` | Calendario comunitario |
 | `DidYouKnow` | `did_you_know` | Datos curiosos del humedal |
 | `MapucheContent` | `mapuche_content` | Contenido cultural Mapuche |
+
