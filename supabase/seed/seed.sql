@@ -38,93 +38,6 @@ values
 on conflict do nothing;
 
 -- ---------------------------------------------------------------------
--- Proximos eventos comunitarios
---
--- Los eventos requieren author_id en un entorno local con usuarios seed
--- usa primero un profesor y si no existe cualquier perfil disponible
--- Si no hay perfiles no inserta eventos 
--- ---------------------------------------------------------------------
-insert into public.events (author_id, title, description, location, starts_at, ends_at)
-select
-  p.id,
-  e.title,
-  e.description,
-  e.location,
-  e.starts_at,
-  e.ends_at
-from (
-  values
-    (
-      'Recorrido de observación',
-      'Salida pedagógica para reconocer aves, plantas y servicios ecosistémicos del humedal.',
-      'Acceso norte del humedal',
-      '2026-06-12 10:00:00-04'::timestamptz,
-      '2026-06-12 12:00:00-04'::timestamptz
-    ),
-    (
-      'Taller familiar de cuidado del agua',
-      'Actividad comunitaria para conversar sobre buenas prácticas de protección del humedal.',
-      'Escuela Monteverde',
-      '2026-06-19 15:30:00-04'::timestamptz,
-      '2026-06-19 17:00:00-04'::timestamptz
-    )
-) as e(title, description, location, starts_at, ends_at)
-join lateral (
-  select id
-    from public.profiles
-   order by (role = 'teacher') desc, created_at asc
-   limit 1
-) p on true
-where not exists (
-  select 1 from public.events existing where existing.title = e.title
-);
-
--- ---------------------------------------------------------------------
--- Recursos educativos de prueba
--- ---------------------------------------------------------------------
-insert into public.educational_resources (author_id, title, description, resource_type, url, subject_area)
-select
-  p.id,
-  r.title,
-  r.description,
-  r.resource_type,
-  r.url,
-  r.subject_area
-from (
-  values
-    (
-      'Guía de aves del humedal',
-      'Documento con fotografías e información de las principales aves observadas en las Vegas de Chivilcán.',
-      'pdf'::public.resource_type,
-      'https://example.com/aves-humedal.pdf',
-      'ciencias naturales'
-    ),
-    (
-      'Video: servicios ecosistémicos',
-      'Explicación audiovisual sobre qué son los servicios ecosistémicos y por qué importan.',
-      'video'::public.resource_type,
-      'https://example.com/servicios-ecosistemicos',
-      'educación ambiental'
-    ),
-    (
-      'Ficha de flora nativa',
-      'Resumen con imágenes y características de las plantas nativas del humedal.',
-      'pdf'::public.resource_type,
-      'https://example.com/flora-nativa.pdf',
-      'ciencias naturales'
-    )
-) as r(title, description, resource_type, url, subject_area)
-join lateral (
-  select id
-    from public.profiles
-   order by (role = 'teacher') desc, created_at asc
-   limit 1
-) p on true
-where not exists (
-  select 1 from public.educational_resources existing where existing.title = r.title
-);
-
--- ---------------------------------------------------------------------
 -- Contenido cultural Mapuche
 -- ---------------------------------------------------------------------
 insert into public.mapuche_content (title, content, category)
@@ -133,4 +46,5 @@ values
   ('El Ngen del agua',   'Espíritu protector del agua en la cosmovisión Mapuche.',                    'leyenda'),
   ('Mapudungun básico',  'Mari mari = hola, Chaltu may = muchas gracias, Pewkayal = hasta pronto.',   'vocabulario')
 on conflict do nothing;
+
 
