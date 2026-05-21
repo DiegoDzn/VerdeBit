@@ -1,17 +1,6 @@
 # Frontend
 
-App móvil del MVP Escuela Monteverde, construida con Expo, React Native y Supabase.
-
-## Estructura
-
-```text
-src/
-├── app/          # Entrada de la app, providers y navegación.
-├── components/   # Componentes reutilizables.
-├── features/     # Secciones del MVP.
-├── lib/          # Clientes externos, Supabase y entorno.
-└── theme/        # Colores y tema visual.
-```
+App móvil del proyecto Escuela Monteverde. Está hecha con Expo, React Native y Supabase.
 
 ## Comandos
 
@@ -21,10 +10,17 @@ npm run typecheck
 npm run start
 ```
 
-## AppEntry
+## Variables
 
-`expo/AppEntry` es el punto de entrada interno de Expo definido en `package.json`. Expo lo usa para cargar `App.tsx` y montar la aplicación.
+Crear `src/frontend/.env` desde `.env.example`:
 
-Si ves un archivo como `dist/_expo/static/js/web/AppEntry-....js`, es un bundle generado para web. No es una clase del proyecto y no se edita a mano.
+```env
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-La carpeta `dist/` se genera al exportar/buildar la app para web. No se edita ni se versiona.
+## Nota sobre AppEntry
+
+`expo/AppEntry` es el punto de entrada que Expo usa para cargar `App.tsx`.
+
+Si aparece un archivo dentro de `dist/` con nombre parecido a `AppEntry-....js`, es un archivo generado al exportar la app para web. No se edita a mano.
