@@ -62,6 +62,7 @@ Crear un proyecto en Supabase y ejecuta los scripts SQL en este orden desde el S
 supabase/migrations/0001_schema.sql
 supabase/migrations/0002_functions_triggers.sql
 supabase/migrations/0003_rls_policies.sql
+supabase/migrations/0004_security_hardening.sql
 ```
 
 Opcional:
