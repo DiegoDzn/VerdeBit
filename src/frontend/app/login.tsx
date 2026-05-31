@@ -1,67 +1,47 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-import { useAuth } from '@/lib/auth/AuthContext';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [cargando, setCargando] = useState(false);
   const router = useRouter();
-  const { signIn } = useAuth();
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (email.trim() === '' || password.trim() === '') {
       Alert.alert('Error', 'Por favor llena todos los campos');
       return;
     }
-    setCargando(true);
-    const { error } = await signIn(email, password);
-    setCargando(false);
-    if (error) {
-      Alert.alert('Error', error);
-    }
+    router.replace('/(tabs)');
   };
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <Text style={styles.logo}>VerdeBit</Text>
+      <Text style={styles.subtitle}>¡Explora y aprende con nosotros!</Text>
 
-      {/* --- SECCIÓN SUPERIOR (Botón atrás y Títulos) --- */}
-      <View style={styles.topSection}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backIcon}>‹</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Bienvenido{"\n"}de vuelta</Text>
+      {/* --- INICIO DEL CUADRADO / TARJETA --- */}
+      <View style={styles.loginCard}>
         
-        <View style={styles.roleContainer}>
-          <Text style={styles.roleText}>Ingresa con tu correo institucional.</Text>
-        </View>
-      </View>
-
-      {/* --- SECCIÓN CENTRAL (Formulario) --- */}
-      <View style={styles.formSection}>
         {/* Campo de Correo */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>CORREO ELECTRÓNICO</Text> 
+          <Text style={styles.label}>Nombre de usuario</Text> 
           <TextInput
             style={styles.input}
-            placeholder="ejemplo@monteverde.cl"
+            placeholder="Tu apodo genial"
             placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
-            keyboardType="email-address"
           />
         </View>
 
         {/* Campo de Contraseña */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>CONTRASEÑA</Text>
+          <Text style={styles.label}>Contraseña Secreta</Text>
           <TextInput
             style={styles.input}
-            placeholder="••••••••"
+            placeholder="***"
             placeholderTextColor="#999"
             secureTextEntry
             value={password}
@@ -69,25 +49,13 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* ¿Olvidaste tu contraseña? (REDIRECCIÓN AGREGADA AQUÍ) */}
-        <TouchableOpacity 
-          style={styles.forgotPasswordButton} 
-          onPress={() => router.push('/nuevaContrasena')}
-        >
-          <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+        {/* Botón Entrar */}
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>¡Entrar! →</Text>
         </TouchableOpacity>
+
       </View>
 
-      {/* --- SECCIÓN INFERIOR (Botón y Términos) --- */}
-      <View style={styles.bottomSection}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleLogin} disabled={cargando}>
-          <Text style={styles.submitButtonText}>{cargando ? 'Ingresando…' : 'Iniciar sesión'}</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.disclaimerText}>
-          Al continuar aceptas usar la app con cuidado del humedal.
-        </Text>
-      </View>
 
     </View>
   );
@@ -96,117 +64,63 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbf4e6', 
-    paddingHorizontal: 28,
-    paddingTop: 60,
-    paddingBottom: 40,
-    justifyContent: 'space-between', 
-  },
-  topSection: {
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  backButton: {
-    width: 45,
-    height: 45,
-    borderRadius: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f7f7f7',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    padding: 20,
   },
-  backIcon: {
-    fontSize: 28,
-    color: '#333333',
-    fontWeight: '300',
-    marginTop: -4, 
-  },
-  title: {
-    fontSize: 36,
+  logo: {
+    fontSize: 40,
     fontWeight: 'bold',
-    color: '#242424',
-    lineHeight: 42,
-    letterSpacing: -0.5,
-    marginBottom: 12,
+    color: '#2e7d32',
+    marginBottom: 5,
   },
-  roleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 40,
   },
-  roleText: {
-    fontSize: 15,
-    color: '#6e695e',
-  },
-  roleHighlight: {
-    fontWeight: 'bold',
-    color: '#345543', 
-  },
-  formSection: {
+  /* --- ESTILOS DEL CUADRADO PRINCIPAL --- */
+  loginCard: {
     width: '100%',
-    flex: 1,
-    justifyContent: 'flex-start', 
-    marginTop: -150,                
-    maxHeight: 280, 
+     // Fondo crema claro (como tu imagen)
+    borderRadius: 20,          // Bordes redondeados
+    borderWidth: 1.5,          // Grosor del borde
+    borderColor: '#5d3c22',    // Color marrón madera del borde
+    padding: 20,               // Espacio interno para que nada toque los bordes
+    alignItems: 'center',
   },
   inputGroup: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#7e7568', 
-    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
     marginBottom: 8,
+    alignSelf: 'flex-start',
   },
   input: {
     width: '100%',
-    backgroundColor: '#fffdf9', 
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#ebdcc5', 
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     fontSize: 16,
-    color: '#333333',
   },
-  forgotPasswordButton: {
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#c46d46',
-  },
-  bottomSection: {
+  button: {
     width: '100%',
+    backgroundColor: '#2e7d32',
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
-    gap: 16,
+    marginTop: 15, // Espacio entre el último input y el botón
   },
-  submitButton: {
-    width: '100%',
-    backgroundColor: '#355343', 
-    paddingVertical: 18,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
-  },
-  disclaimerText: {
-    fontSize: 12,
-    color: '#7e7568',
-    textAlign: 'center',
-    lineHeight: 16,
-    paddingHorizontal: 10,
   },
 });
