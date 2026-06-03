@@ -164,26 +164,20 @@ export async function deleteOption(optionId: string): Promise<void> {
 export async function getQuizStats(
   quizId: string,
 ): Promise<{ completed: number; total: number; average: number }> {
-  const { count: totalCount, error: totalError } = await supabase
+  const { data: attempts, error } = await supabase
     .from('quiz_attempts')
-    .select('id', { count: 'exact', head: true })
-    .eq('quiz_id', quizId);
-
-  if (totalError) throw new Error(totalError.message);
-
-  const { data: completed, error: completedError } = await supabase
-    .from('quiz_attempts')
-    .select('score')
+    .select('id, score')
     .eq('quiz_id', quizId)
     .not('completed_at', 'is', null);
 
-  if (completedError) throw new Error(completedError.message);
+  if (error) throw new Error(error.message);
 
-  const completedCount = completed?.length ?? 0;
+  const completedCount = attempts?.length ?? 0;
+  const totalCount = completedCount;
   const average =
     completedCount > 0
-      ? (completed?.reduce((sum, a) => sum + a.score, 0) ?? 0) / completedCount
+      ? (attempts?.reduce((sum, a) => sum + a.score, 0) ?? 0) / completedCount
       : 0;
 
-  return { completed: completedCount, total: totalCount ?? 0, average };
+  return { completed: completedCount, total: totalCount, average };
 }
