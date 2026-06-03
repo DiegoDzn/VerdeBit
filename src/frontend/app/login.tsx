@@ -1,18 +1,37 @@
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function LoginScreen() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setError(null);
+
     if (email.trim() === '' || password.trim() === '') {
-      Alert.alert('Error', 'Por favor llena todos los campos');
+      setError('Por favor llena todos los campos');
       return;
     }
-    router.replace('/(tabs)');
+
+    setLoading(true);
+    const { error: signInError } = await signIn(email, password);
+    setLoading(false);
+
+    if (signInError) {
+      setError(signInError);
+    }
   };
 
   return (
@@ -20,23 +39,21 @@ export default function LoginScreen() {
       <Text style={styles.logo}>VerdeBit</Text>
       <Text style={styles.subtitle}>¡Explora y aprende con nosotros!</Text>
 
-      {/* --- INICIO DEL CUADRADO / TARJETA --- */}
       <View style={styles.loginCard}>
-        
-        {/* Campo de Correo */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nombre de usuario</Text> 
+          <Text style={styles.label}>Correo electrónico</Text>
           <TextInput
             style={styles.input}
-            placeholder="Tu apodo genial"
+            placeholder="tucorreo@ejemplo.com"
             placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
+            keyboardType="email-address"
+            editable={!loading}
           />
         </View>
 
-        {/* Campo de Contraseña */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Contraseña Secreta</Text>
           <TextInput
@@ -46,17 +63,24 @@ export default function LoginScreen() {
             secureTextEntry
             value={password}
             onChangeText={setPassword}
+            editable={!loading}
           />
         </View>
 
-        {/* Botón Entrar */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>¡Entrar! →</Text>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>¡Entrar! →</Text>
+          )}
         </TouchableOpacity>
-
       </View>
-
-
     </View>
   );
 }
@@ -80,14 +104,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 40,
   },
-  /* --- ESTILOS DEL CUADRADO PRINCIPAL --- */
   loginCard: {
     width: '100%',
-     // Fondo crema claro (como tu imagen)
-    borderRadius: 20,          // Bordes redondeados
-    borderWidth: 1.5,          // Grosor del borde
-    borderColor: '#5d3c22',    // Color marrón madera del borde
-    padding: 20,               // Espacio interno para que nada toque los bordes
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#5d3c22',
+    padding: 20,
     alignItems: 'center',
   },
   inputGroup: {
@@ -110,13 +132,22 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     fontSize: 16,
   },
+  error: {
+    width: '100%',
+    color: '#c62828',
+    fontSize: 14,
+    marginBottom: 10,
+  },
   button: {
     width: '100%',
     backgroundColor: '#2e7d32',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 15, // Espacio entre el último input y el botón
+    marginTop: 15,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#fff',
