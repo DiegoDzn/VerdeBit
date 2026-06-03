@@ -46,6 +46,20 @@ export type QuizAttempt = {
   completed_at: string | null;
 };
 
+export type ResourceType = 'pdf' | 'video' | 'link' | 'image' | 'text';
+
+export type EducationalResource = {
+  id: string;
+  author_id: string;
+  title: string;
+  description: string | null;
+  resource_type: ResourceType;
+  url: string;
+  subject_area: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ProfessorStats = {
   estudiantes_totales: number;
   recursos: number;
