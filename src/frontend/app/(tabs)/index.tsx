@@ -1,20 +1,33 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function InicioScreen() {
+  const { profile, role, signOut } = useAuth();
+
+  const nombre = profile?.full_name ?? 'explorador/a';
+  const esProfe = role === 'teacher';
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.welcomeContainer}>
-          <Text style={styles.greetingText}>¡Hola!</Text>
-          
+          {esProfe && <Text style={styles.roleTag}>MODO PROFESOR/A</Text>}
+          <Text style={styles.greetingText}>
+            {esProfe ? `Hola, ${nombre}` : `¡Hola, ${nombre}!`}
+          </Text>
           <Text style={styles.subTitleText}>Escuela Monteverde</Text>
-          
-         
-          <Text style={styles.questionText}>¿Qué quieres hacer hoy?</Text>
+          <Text style={styles.questionText}>
+            {esProfe
+              ? '¿Qué quieres publicar hoy?'
+              : '¿Qué descubres hoy en el humedal?'}
+          </Text>
         </View>
 
-        
+        <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -26,43 +39,49 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   scrollContent: {
-    paddingTop: 20, // Un margen pequeño ya que el Header de arriba ya cubre el notch
+    paddingTop: 20,
     paddingHorizontal: 24,
-    paddingBottom: 100, // Espacio para que la barra de pestañas de abajo no tape nada
+    paddingBottom: 100,
   },
   welcomeContainer: {
     marginBottom: 25,
   },
+  roleTag: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2e7d32',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
   greetingText: {
     fontSize: 32,
-    fontWeight: 'bold', // Negrita fuerte
+    fontWeight: 'bold',
     color: '#1a1a1a',
   },
   subTitleText: {
     fontSize: 20,
-    fontWeight: '300', // Estilo de subtítulo
-    color: '#000000', // El verde de tu app
+    fontWeight: '300',
+    color: '#000000',
     marginTop: 2,
   },
   questionText: {
     fontSize: 25,
     color: '#000000',
     marginTop: 6,
-    
     fontWeight: '400',
   },
-  contentDummy: {
+  logoutButton: {
     marginTop: 10,
-    height: 250,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderStyle: 'dashed',
+    alignSelf: 'flex-start',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#e0e0e0',
   },
-  placeholderText: {
-    color: '#999999',
+  logoutText: {
+    color: '#c62828',
+    fontWeight: '600',
+    fontSize: 15,
   },
 });
