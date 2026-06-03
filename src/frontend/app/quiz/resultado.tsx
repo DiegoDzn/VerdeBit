@@ -35,7 +35,7 @@ export default function QuizResultScreen() {
         <Text style={styles.pointsText}>+{puntosGanados} puntos ganados</Text>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.replace('/(tabs)/aulaverde')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.replace('/quizzes')}>
         <Text style={styles.buttonText}>Volver a los quizzes</Text>
       </TouchableOpacity>
 
