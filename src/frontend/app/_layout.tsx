@@ -40,6 +40,9 @@ function AuthGate() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       <Stack.Screen name="quiz/[id]" options={{ headerShown: true }} />
+      <Stack.Screen name="professor/resource/create" options={{ headerShown: true }} />
+      <Stack.Screen name="professor/quiz/create" options={{ headerShown: true }} />
+      <Stack.Screen name="professor/quiz/[id]" options={{ headerShown: true }} />
       <Stack.Screen name="quiz/resultado" options={{ headerShown: false }} />
     </Stack>
   );
