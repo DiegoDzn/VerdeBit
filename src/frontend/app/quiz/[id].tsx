@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { palette, radius, spacing } from '@/constants/design';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -24,7 +23,6 @@ import type { Quiz, QuizQuestion } from '@/lib/types';
 export default function QuizPlayScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { session } = useAuth();
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -134,14 +132,7 @@ export default function QuizPlayScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
-
-      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={26} color={palette.ink} />
-        </TouchableOpacity>
-        <Text style={styles.topBarTitle} numberOfLines={1}>{quiz?.title ?? 'Quiz'}</Text>
-      </View>
+      <Stack.Screen options={{ title: quiz?.title ?? 'Quiz', headerBackVisible: false }} />
 
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress}%` }]} />
@@ -209,28 +200,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: palette.bg,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xl,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: palette.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topBarTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: palette.ink,
+    padding: spacing.xl,
   },
   centered: {
     flex: 1,
