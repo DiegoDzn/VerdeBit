@@ -148,6 +148,12 @@ function ProfileStudent() {
         <Ionicons name="log-out-outline" size={20} color={palette.error} />
         <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
+
+      <LeaderboardModal
+        visible={showLeaderboard}
+        data={leaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
     </ScrollView>
   );
 }
