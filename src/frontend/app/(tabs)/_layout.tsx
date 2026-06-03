@@ -5,9 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useAuth } from '@/lib/auth/AuthContext';
+
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const { role } = useAuth();
+
+  const esProfe = role === 'teacher';
+  const quizzesLabel = esProfe ? 'Cursos' : 'Quizzes';
+  const quizzesIcon = esProfe ? 'stats-chart' : 'help-circle';
 
   // Le damos un poco más de altura fija abajo para que el diseño vertical respire bien
   const tabBarHeight = Platform.OS === 'ios' ? 75 + insets.bottom : 80 + insets.bottom;
@@ -76,6 +83,22 @@ export default function TabLayout() {
               label="Catálogo" 
               isActive={isTabActive('catalogo')} 
               insetsBottom={insets.bottom} 
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="quizzes"
+        options={{
+          title: quizzesLabel,
+          tabBarButton: (props) => (
+            <CustomTabButton
+              {...props}
+              icon={quizzesIcon}
+              label={quizzesLabel}
+              isActive={isTabActive('quizzes')}
+              insetsBottom={insets.bottom}
             />
           ),
         }}
