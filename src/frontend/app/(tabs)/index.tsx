@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function InicioScreen() {
   const { profile, role, signOut } = useAuth();
+  const router = useRouter();
 
   const nombre = profile?.full_name ?? 'explorador/a';
   const esProfe = role === 'teacher';
@@ -24,6 +26,13 @@ export default function InicioScreen() {
               : '¿Qué descubres hoy en el humedal?'}
           </Text>
         </View>
+
+        {!esProfe && (
+          <TouchableOpacity style={styles.quizCta} onPress={() => router.push('/quizzes')}>
+            <Text style={styles.quizCtaTitle}>Quiz rápido</Text>
+            <Text style={styles.quizCtaText}>Pon a prueba lo que sabes del humedal →</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
           <Text style={styles.logoutText}>Cerrar sesión</Text>
@@ -69,6 +78,23 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginTop: 6,
     fontWeight: '400',
+  },
+  quizCta: {
+    backgroundColor: '#C16E48',
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 20,
+  },
+  quizCtaTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  quizCtaText: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 4,
+    opacity: 0.95,
   },
   logoutButton: {
     marginTop: 10,
