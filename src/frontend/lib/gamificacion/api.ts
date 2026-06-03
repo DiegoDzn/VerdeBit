@@ -1,143 +1,125 @@
 import { supabase } from '@/lib/supabase/client';
 
-// Logro desbloqueado por el estudiante
-export interface Achievement {
+// Medalla del catálogo (tabla badges)
+export interface Badge {
   id: string;
+  code: string;
   name: string;
   description: string | null;
-  icon: string | null;
-  criteria_type: 'quiz_completed' | 'perfect_score' | 'total_points' | 'quiz_count';
-  criteria_value: number | null;
-  created_at: string;
+  icon_url: string | null;
+  points_required: number;
 }
 
-// Logro que un estudiante ha desbloqueado
-export interface StudentAchievement {
+// Medalla obtenida por un estudiante (tabla student_badges)
+export interface StudentBadge {
   id: string;
-  user_id: string;
-  achievement_id: string;
-  earned_at: string;
-  achievement: Achievement;
+  student_id: string;
+  badge_id: string;
+  awarded_at: string;
+  badge: Badge;
 }
 
-// Nivel y puntos del estudiante
-export interface StudentLevel {
-  id: string;
-  user_id: string;
-  level: number;
-  total_points: number;
-  updated_at: string;
-}
-
-// Perfil completo del estudiante con logros
+// Perfil del estudiante con datos de gamificación
 export interface StudentProfile {
   id: string;
   role: string;
+  full_name: string;
+  avatar_url: string | null;
   total_points: number;
   level: number;
-  achievements: StudentAchievement[];
+  badges: StudentBadge[];
 }
 
 // Entrada en el ranking de estudiantes
 export interface LeaderboardEntry {
-  user_id: string;
-  name: string;
-  email: string;
+  student_id: string;
+  full_name: string;
   total_points: number;
   level: number;
   position: number;
 }
 
-// Obtener perfil completo del estudiante
+// Puntos necesarios para subir de nivel
+export const POINTS_PER_LEVEL = 100;
+
+// Deriva el nivel a partir de los puntos acumulados.
+// El backend no almacena nivel: se calcula desde total_points.
+export function levelFromPoints(points: number): number {
+  return Math.floor((points || 0) / POINTS_PER_LEVEL);
+}
+
+// Obtener perfil del estudiante con sus medallas
 async function getProfile(userId: string): Promise<StudentProfile> {
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, role, total_points')
+    .select('id, role, full_name, avatar_url, total_points')
     .eq('id', userId)
     .single();
 
-  if (profileError) throw new Error(profileError.message);
+  if (error) throw new Error(error.message);
 
-  const { data: level, error: levelError } = await supabase
-    .from('student_levels')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+  const { data: badges, error: badgesError } = await supabase
+    .from('student_badges')
+    .select('id, student_id, badge_id, awarded_at, badge:badges(*)')
+    .eq('student_id', userId)
+    .order('awarded_at', { ascending: false });
 
-  if (levelError && levelError.code !== 'PGRST116') throw new Error(levelError.message);
+  if (badgesError) throw new Error(badgesError.message);
 
-  const { data: achievements, error: achievementsError } = await supabase
-    .from('student_achievements')
-    .select(`
-      id,
-      user_id,
-      achievement_id,
-      earned_at,
-      achievement:achievements(*)
-    `)
-    .eq('user_id', userId)
-    .order('earned_at', { ascending: false });
-
-  if (achievementsError) throw new Error(achievementsError.message);
+  const totalPoints = profile.total_points ?? 0;
 
   return {
     id: profile.id,
     role: profile.role,
-    total_points: profile.total_points || 0,
-    level: level?.level || 0,
-    achievements: (achievements as any) || [],
+    full_name: profile.full_name,
+    avatar_url: profile.avatar_url,
+    total_points: totalPoints,
+    level: levelFromPoints(totalPoints),
+    badges: (badges as any) ?? [],
   };
 }
 
+// Ranking de estudiantes por puntos acumulados
 async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
-  const { data: leaderboard, error } = await supabase
-    .from('student_levels')
-    .select(`
-      user_id,
-      level,
-      total_points,
-      profile:profiles(name, email)
-    `)
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, total_points')
+    .eq('role', 'student')
     .order('total_points', { ascending: false })
     .limit(limit);
 
   if (error) throw new Error(error.message);
 
-  return (leaderboard as any).map((entry: any, idx: number) => ({
-    user_id: entry.user_id,
-    name: entry.profile?.name || 'Anónimo',
-    email: entry.profile?.email || '',
-    total_points: entry.total_points,
-    level: entry.level,
+  return (data ?? []).map((p: any, idx: number) => ({
+    student_id: p.id,
+    full_name: p.full_name ?? 'Anónimo',
+    total_points: p.total_points ?? 0,
+    level: levelFromPoints(p.total_points ?? 0),
     position: idx + 1,
   }));
 }
 
-async function getAchievements(): Promise<Achievement[]> {
+// Catálogo completo de medallas disponibles
+async function getAllBadges(): Promise<Badge[]> {
   const { data, error } = await supabase
-    .from('achievements')
+    .from('badges')
     .select('*')
-    .order('created_at', { ascending: true });
+    .order('points_required', { ascending: true });
 
   if (error) throw new Error(error.message);
-  return data || [];
+  return data ?? [];
 }
 
-async function getUserAchievements(userId: string): Promise<StudentAchievement[]> {
+// Medallas obtenidas por un estudiante
+async function getStudentBadges(userId: string): Promise<StudentBadge[]> {
   const { data, error } = await supabase
-    .from('student_achievements')
-    .select(`
-      id,
-      user_id,
-      achievement_id,
-      earned_at,
-      achievement:achievements(*)
-    `)
-    .eq('user_id', userId)
-    .order('earned_at', { ascending: false });
+    .from('student_badges')
+    .select('id, student_id, badge_id, awarded_at, badge:badges(*)')
+    .eq('student_id', userId)
+    .order('awarded_at', { ascending: false });
 
   if (error) throw new Error(error.message);
-  return (data as any) || [];
+  return (data as any) ?? [];
 }
 
-export { getProfile, getLeaderboard, getAchievements, getUserAchievements };
+export { getProfile, getLeaderboard, getAllBadges, getStudentBadges };

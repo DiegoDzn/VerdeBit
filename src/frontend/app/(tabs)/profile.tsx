@@ -112,21 +112,21 @@ function ProfileStudent() {
         </Text>
       </View>
 
-      {/* Seccion de logros */}
-      <Text style={styles.sectionTitle}>Logros ({profile.achievements.length})</Text>
-      {profile.achievements.length === 0 ? (
+      {/* Sección de medallas */}
+      <Text style={styles.sectionTitle}>Medallas ({profile.badges.length})</Text>
+      {profile.badges.length === 0 ? (
         <View style={styles.emptyAchievements}>
           <Ionicons name="trophy-outline" size={40} color={palette.sub} />
-          <Text style={styles.emptyText}>Aún no has desbloqueado logros. ¡Sigue jugando!</Text>
+          <Text style={styles.emptyText}>Aún no has desbloqueado medallas. ¡Sigue jugando!</Text>
         </View>
       ) : (
         <View style={styles.achievementsGrid}>
-          {profile.achievements.map((achievement) => (
-            <View key={achievement.id} style={styles.achievementCard}>
-              <Text style={styles.achievementIcon}>{achievement.achievement?.icon || '⭐'}</Text>
-              <Text style={styles.achievementName}>{achievement.achievement?.name}</Text>
+          {profile.badges.map((studentBadge) => (
+            <View key={studentBadge.id} style={styles.achievementCard}>
+              <Text style={styles.achievementIcon}>🏅</Text>
+              <Text style={styles.achievementName}>{studentBadge.badge?.name}</Text>
               <Text style={styles.achievementDate}>
-                {new Date(achievement.earned_at).toLocaleDateString('es-CL')}
+                {new Date(studentBadge.awarded_at).toLocaleDateString('es-CL')}
               </Text>
             </View>
           ))}
@@ -198,11 +198,10 @@ function LeaderboardModal({
         </View>
 
         {data.map((entry) => (
-          <View key={entry.user_id} style={styles.leaderboardRow}>
+          <View key={entry.student_id} style={styles.leaderboardRow}>
             <Text style={styles.position}>{entry.position}</Text>
             <View style={styles.leaderboardInfo}>
-              <Text style={styles.leaderboardName}>{entry.name}</Text>
-              <Text style={styles.leaderboardEmail}>{entry.email}</Text>
+              <Text style={styles.leaderboardName}>{entry.full_name}</Text>
             </View>
             <View style={styles.leaderboardStats}>
               <Text style={styles.leaderboardLevel}>Lvl {entry.level}</Text>
@@ -329,7 +328,6 @@ const styles = StyleSheet.create({
   position: { fontSize: 18, fontWeight: '800', color: palette.secondary, minWidth: 32 },
   leaderboardInfo: { flex: 1, gap: 4 },
   leaderboardName: { fontSize: 15, fontWeight: '800', color: palette.ink },
-  leaderboardEmail: { fontSize: 12, color: palette.sub },
   leaderboardStats: { alignItems: 'flex-end', gap: 4 },
   leaderboardLevel: { fontSize: 12, fontWeight: '700', color: palette.primary },
   leaderboardPoints: { fontSize: 14, fontWeight: '800', color: palette.accent },
