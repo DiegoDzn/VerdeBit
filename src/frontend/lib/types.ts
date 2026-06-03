@@ -45,3 +45,17 @@ export type QuizAttempt = {
   score: number;
   completed_at: string | null;
 };
+
+export type ProfessorStats = {
+  estudiantes_totales: number;
+  recursos: number;
+  quizzes_completados: number;
+  por_revisar: number;
+};
+
+export type QuizWithStats = Quiz & {
+  completed_count: number;
+  total_count: number;
+  average_score: number;
+  percent: number;
+};
