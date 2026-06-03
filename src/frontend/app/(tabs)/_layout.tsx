@@ -107,12 +107,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="aulaverde"
         options={{
-          title: 'Aula Verde',
+          title: 'Aula',
           tabBarButton: (props) => (
             <CustomTabButton 
               {...props} 
               icon="school" 
-              label="Aula Verde" 
+              label="Aula" 
               isActive={isTabActive('aulaverde')} 
               insetsBottom={insets.bottom} 
             />
@@ -121,20 +121,22 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="calendario"
+        name="profile"
         options={{
-          title: 'Calendario',
+          title: 'Perfil',
           tabBarButton: (props) => (
             <CustomTabButton 
               {...props} 
-              icon="calendar" 
-              label="Calendario" 
-              isActive={isTabActive('calendario')} 
+              icon="person" 
+              label="Perfil" 
+              isActive={isTabActive('profile')} 
               insetsBottom={insets.bottom} 
             />
           ),
         }}
       />
+
+      <Tabs.Screen name="calendario" options={{ href: null }} />
     </Tabs>
   );
 }
