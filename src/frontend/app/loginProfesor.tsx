@@ -14,9 +14,10 @@ export default function LoginScreen() {
   }
   router.replace({
     pathname: '/(tabs)',
-    params: { rol: 'estudiante' }
+    params: { rol: 'profesor' }
   });
 };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -31,7 +32,7 @@ export default function LoginScreen() {
         
         <View style={styles.roleContainer}>
           <Text style={styles.roleText}>
-            Inicia sesión como <Text style={styles.roleHighlight}>estudiante</Text>.
+            Inicia sesión como <Text style={styles.roleHighlight}>profesor</Text>.
           </Text>
         </View>
       </View>
@@ -52,7 +53,6 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* Campo de Contraseña */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>CONTRASEÑA</Text>
           <TextInput
@@ -65,16 +65,14 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* ¿Olvidaste tu contraseña? (REDIRECCIÓN AGREGADA AQUÍ) */}
         <TouchableOpacity 
-          style={styles.forgotPasswordButton} 
+          style={styles.forgotPasswordButton}
           onPress={() => router.push('/nuevaContrasena')}
         >
           <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
       </View>
 
-      {/* --- SECCIÓN INFERIOR (Botón y Términos) --- */}
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.submitButton} onPress={handleLogin}>
           <Text style={styles.submitButtonText}>Iniciar sesión</Text>

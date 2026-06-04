@@ -1,245 +1,359 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useGlobalSearchParams } from 'expo-router'; // 💡 Solución al rol perdido
+import React from 'react';
 import {
-  ActivityIndicator,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { palette, radius, spacing } from '@/constants/design';
-import { useAuth } from '@/lib/auth/AuthContext';
-import { getMyResources, listResources } from '@/lib/recursos/api';
-import type { EducationalResource, ResourceType } from '@/lib/types';
+// --- DATA MOCK ESTUDIANTE ---
+const QUIZZES_ESTUDIANTE = [
+  { id: '1', estado: 'ACTIVO', label: '5 PREGUNTAS · +50 PTS', titulo: 'Animales del humedal', desc: '5 preguntas sobre las aves y anfibios del humedal.', colorBg: '#355343', activo: true },
+  { id: '2', estado: 'PRÓXIMAMENTE', label: 'PRÓXIMAMENTE', titulo: 'Plantas del humedal', desc: 'Próximamente', colorBg: '#75875c', activo: false },
+  { id: '3', estado: 'PRÓXIMAMENTE', label: 'PRÓXIMAMENTE', titulo: 'Servicios del humedal', desc: 'Próximamente', colorBg: '#dfae4b', activo: false },
+  { id: '4', estado: 'PRÓXIMAMENTE', label: 'PRÓXIMAMENTE', titulo: 'Cultura Mapuche y el agua', desc: 'Próximamente', colorBg: '#c46d46', activo: false },
+];
 
-const TYPE_ICON: Record<ResourceType, keyof typeof Ionicons.glyphMap> = {
-  pdf: 'document-text',
-  video: 'videocam',
-  link: 'link',
-  image: 'image',
-  text: 'reader',
-};
+// --- DATA MOCK PROFESOR ---
+const CURSOS_PROFESOR = [
+  { id: '1', tipo: 'ASIGNADO', tag: 'ASIGNADO A 4° A · 4° B · 5° A', titulo: 'Animales del humedal', completados: '62 de 78 completaron', promedio: '4.1/5', porcentaje: '79%', colorBorde: '#355343' },
+  { id: '2', tipo: 'BORRADOR', tag: 'BORRADOR', titulo: 'Plantas del humedal', desc: 'Aún no publicado. Termina las preguntas para asignarlo a tus cursos.', totalPreguntas: '0 preg.', colorBorde: '#75875c' },
+  { id: '3', tipo: 'BORRADOR', tag: 'BORRADOR', titulo: 'Servicios del humedal', desc: 'Aún no publicado. Termina las preguntas para asignarlo a tus cursos.', totalPreguntas: '0 preg.', colorBorde: '#dfae4b' },
+];
 
-const TYPE_LABEL: Record<ResourceType, string> = {
-  pdf: 'PDF',
-  video: 'Video',
-  link: 'Enlace',
-  image: 'Imagen',
-  text: 'Texto',
-};
+export default function AulaVerdeScreen() {
+  const insets = useSafeAreaInsets();
+  
+  // Capturamos el rol global para que persista entre pestañas
+  const { rol } = useGlobalSearchParams<{ rol: 'estudiante' | 'profesor' }>();
+  const userRol = rol || 'estudiante';
 
-export default function AulaVerdeTab() {
-  const { role } = useAuth();
-  return role === 'teacher' ? <ResourcesTeacher /> : <ResourcesStudent />;
-}
-
-function ResourceCard({ resource }: { resource: EducationalResource }) {
-  const openResource = () => {
-    if (resource.url) Linking.openURL(resource.url).catch(() => {});
-  };
-
-  return (
-    <TouchableOpacity style={styles.card} onPress={openResource} activeOpacity={0.8}>
-      <View style={styles.iconBox}>
-        <Ionicons name={TYPE_ICON[resource.resource_type]} size={24} color={palette.primary} />
-      </View>
-      <View style={styles.cardBody}>
-        <Text style={styles.type}>{TYPE_LABEL[resource.resource_type].toUpperCase()}</Text>
-        <Text style={styles.title}>{resource.title}</Text>
-        {resource.description ? (
-          <Text style={styles.description} numberOfLines={2}>{resource.description}</Text>
-        ) : null}
-        {resource.subject_area ? (
-          <Text style={styles.subject}>{resource.subject_area}</Text>
-        ) : null}
-      </View>
-      <Ionicons name="open-outline" size={20} color={palette.sub} />
-    </TouchableOpacity>
-  );
-}
-
-function ResourcesStudent() {
-  const [resources, setResources] = useState<EducationalResource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const cargar = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setResources(await listResources());
-    } catch {
-      setError('No pudimos cargar los recursos. Revisa tu conexión.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
-
-  if (loading) {
+  // ==========================================
+  // VISTA: ESTUDIANTE (07 · Quizzes estudiante)
+  // ==========================================
+  if (userRol === 'estudiante') {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={palette.primary} />
+      <View style={[styles.container, { paddingTop: insets.top + 15 }]}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.headerSection}>
+            <Text style={styles.mainTitle}>Quizzes</Text>
+            <Text style={styles.subtitle}>Juega y gana medallas del humedal</Text>
+          </View>
+
+          <View style={styles.cardsContainer}>
+            {QUIZZES_ESTUDIANTE.map((quiz) => (
+              <View key={quiz.id} style={[styles.studentCard, { backgroundColor: quiz.colorBg }]}>
+                <Text style={styles.studentCardLabel}>{quiz.label}</Text>
+                <Text style={styles.studentCardTitle}>{quiz.titulo}</Text>
+                <Text style={styles.studentCardDesc}>{quiz.desc}</Text>
+                
+                {quiz.activo && (
+                  <TouchableOpacity style={styles.playButton}>
+                    <Ionicons name="play" size={12} color="#242424" style={{ marginRight: 4 }} />
+                    <Text style={styles.playButtonText}>Jugar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </View>
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Ionicons name="cloud-offline-outline" size={48} color={palette.sub} />
-        <Text style={styles.stateText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={cargar}>
-          <Text style={styles.retryText}>Reintentar</Text>
+  // ==========================================
+  // VISTA: PROFESOR (07b · Cursos profesor/a)
+  // ==========================================
+  return (
+    <View style={[styles.container, { paddingTop: insets.top + 15 }]}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.headerSection}>
+          <Text style={styles.mainTitle}>Mis cursos</Text>
+          <Text style={styles.subtitle}>Quizzes asignados y progreso</Text>
+        </View>
+
+        {/* Botón Resumen General */}
+        <TouchableOpacity style={styles.summaryButton}>
+          <Text style={styles.summaryButtonText}>RESUMEN GENERAL</Text>
         </TouchableOpacity>
-      </View>
-    );
-  }
 
-  if (resources.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Ionicons name="library-outline" size={48} color={palette.sub} />
-        <Text style={styles.stateText}>Aún no hay recursos disponibles.</Text>
-      </View>
-    );
-  }
+        <View style={styles.sectionDividerRow}>
+          <Text style={styles.sectionHeading}>Quizzes del humedal</Text>
+          <Text style={styles.sectionSubheading}>Toca uno para ver el detalle por curso</Text>
+        </View>
 
-  return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.list}>
-      <Text style={styles.heading}>Aula Verde</Text>
-      <Text style={styles.subheading}>Material para aprender sobre el humedal</Text>
-      {resources.map((r) => <ResourceCard key={r.id} resource={r} />)}
-    </ScrollView>
-  );
-}
+        {/* Listado de Tarjetas de Cursos */}
+        <View style={styles.cardsContainer}>
+          {CURSOS_PROFESOR.map((curso) => (
+            <View key={curso.id} style={[styles.teacherCard, { borderColor: curso.colorBorde }]}>
+              
+              <View style={styles.teacherCardHeader}>
+                <View style={styles.iconCircleBg}>
+                  <Ionicons name="help-circle-outline" size={20} color="#5c6e58" />
+                </View>
+                
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.teacherCardTag, { color: curso.tipo === 'BORRADOR' ? '#dfae4b' : '#355343' }]}>
+                    {curso.tag}
+                  </Text>
+                  <Text style={styles.teacherCardTitle}>{curso.titulo}</Text>
+                </View>
 
-function ResourcesTeacher() {
-  const { session } = useAuth();
-  const router = useRouter();
-  const [resources, setResources] = useState<EducationalResource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+                {curso.porcentaje ? (
+                  <View style={styles.percentBadge}>
+                    <Text style={styles.percentText}>{curso.porcentaje}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.draftBadge}>
+                    <Text style={styles.draftText}>{curso.totalPreguntas}</Text>
+                  </View>
+                )}
+              </View>
 
-  const cargar = useCallback(async () => {
-    if (!session?.user) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setResources(await getMyResources(session.user.id));
-    } catch {
-      setError('No pudimos cargar tus recursos.');
-    } finally {
-      setLoading(false);
-    }
-  }, [session?.user]);
+              {/* Si está asignado, muestra barras de progreso métricas */}
+              {curso.tipo === 'ASIGNADO' ? (
+                <View style={styles.progressSection}>
+                  <View style={styles.barBg}>
+                    {/* 💡 CORRECCIÓN DE TIPADO AQUÍ: Convertimos explícitamente a tipo válido de dimensión */}
+                    <View style={[styles.barFill, { width: curso.porcentaje as any }]} />
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.metaLeft}>{curso.completados}</Text>
+                    <Text style={styles.metaRight}>
+                      Promedio <Text style={{ fontWeight: 'bold' }}>{curso.promedio}</Text>
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                /* Si es borrador, muestra la descripción inferior */
+                <Text style={styles.teacherCardDesc}>{curso.desc}</Text>
+              )}
 
-  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
-
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={palette.primary} />
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={styles.screen} contentContainerStyle={styles.list}>
-        <Text style={styles.heading}>Mis recursos</Text>
-        {error ? (
-          <View style={styles.centered}>
-            <Text style={styles.stateText}>{error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={cargar}>
-              <Text style={styles.retryText}>Reintentar</Text>
-            </TouchableOpacity>
-          </View>
-        ) : resources.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="library-outline" size={40} color={palette.sub} />
-            <Text style={styles.stateText}>No has publicado recursos aún.</Text>
-          </View>
-        ) : (
-          resources.map((r) => <ResourceCard key={r.id} resource={r} />)
-        )}
+            </View>
+          ))}
+        </View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/professor/resource/create')}
-      >
-        <Ionicons name="add" size={28} color="#fff" />
+      {/* --- BOTÓN FLOTANTE CREAR QUIZ --- */}
+      <TouchableOpacity style={[styles.fabButton, { bottom: insets.bottom + 20 }]}>
+        <Ionicons name="add" size={24} color="#ffffff" />
+        <Text style={styles.fabText}>Crear quiz</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: palette.bg },
-  list: { padding: spacing.xl, gap: spacing.lg },
-  centered: {
+  container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#fbf4e6',
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 120,
+  },
+  headerSection: {
+    marginBottom: 20,
+  },
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#242424',
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#7e7568',
+    marginTop: 2,
+  },
+  cardsContainer: {
+    gap: 16,
+    marginTop: 10,
+  },
+  // --- ESTUDIANTE ---
+  studentCard: {
+    borderRadius: 24,
+    padding: 20,
+    minHeight: 130,
     justifyContent: 'center',
-    backgroundColor: palette.bg,
-    padding: spacing.xxl,
-    gap: spacing.md,
   },
-  heading: { fontSize: 22, fontWeight: '800', color: palette.ink },
-  subheading: { fontSize: 14, color: palette.sub, marginTop: -spacing.sm },
-  stateText: { color: palette.sub, fontSize: 16, textAlign: 'center' },
-  retryButton: {
-    marginTop: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xxl,
-    borderRadius: radius.md,
-    backgroundColor: palette.primary,
+  studentCardLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#ffffff',
+    opacity: 0.7,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
-  retryText: { color: '#fff', fontWeight: '700' },
-  emptyBox: { alignItems: 'center', paddingVertical: spacing.xxxl, gap: spacing.md },
-  card: {
+  studentCardTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginTop: 2,
+  },
+  studentCardDesc: {
+    fontSize: 13,
+    color: '#ffffff',
+    opacity: 0.85,
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  playButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: palette.card,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: palette.line,
+    backgroundColor: '#ffffff',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 14,
   },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: palette.bgSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
+  playButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#242424',
   },
-  cardBody: { flex: 1, gap: 2 },
-  type: { fontSize: 11, fontWeight: '800', color: palette.secondary, letterSpacing: 1 },
-  title: { fontSize: 16, fontWeight: '800', color: palette.ink },
-  description: { fontSize: 13, color: palette.sub },
-  subject: { fontSize: 12, color: palette.olive, fontWeight: '600', marginTop: 2 },
-  fab: {
-    position: 'absolute',
-    bottom: spacing.xxl,
-    right: spacing.xxl,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: palette.secondary,
+  // --- PROFESOR ---
+  summaryButton: {
+    backgroundColor: '#355343',
+    borderRadius: 16,
+    paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
+    marginBottom: 24,
+  },
+  summaryButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  sectionDividerRow: {
+    marginBottom: 8,
+  },
+  sectionHeading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#242424',
+  },
+  sectionSubheading: {
+    fontSize: 13,
+    color: '#7e7568',
+    marginTop: 2,
+  },
+  teacherCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 16,
+    borderLeftWidth: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  teacherCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconCircleBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#e9e6dd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  teacherCardTag: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  teacherCardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#242424',
+    marginTop: 1,
+  },
+  teacherCardDesc: {
+    fontSize: 13,
+    color: '#7e7568',
+    marginTop: 12,
+    lineHeight: 18,
+    paddingLeft: 4,
+  },
+  percentBadge: {
+    backgroundColor: '#f2f0eb',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  percentText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#355343',
+  },
+  draftBadge: {
+    backgroundColor: '#edece7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  draftText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#7e7568',
+  },
+  progressSection: {
+    marginTop: 16,
+  },
+  barBg: {
+    height: 8,
+    backgroundColor: '#f2f0eb',
+    borderRadius: 4,
+    width: '100%',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: '#355343',
+    borderRadius: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  metaLeft: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#242424',
+  },
+  metaRight: {
+    fontSize: 12,
+    color: '#242424',
+  },
+  // --- FAB ---
+  fabButton: {
+    position: 'absolute',
+    right: 24,
+    backgroundColor: '#355343',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  fabText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 15,
+    marginLeft: 6,
   },
 });

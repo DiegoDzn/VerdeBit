@@ -1,257 +1,323 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-
-import { palette, radius, spacing } from '@/constants/design';
-import { useAuth } from '@/lib/auth/AuthContext';
-import { getMyQuizzes, getQuizStats } from '@/lib/professor/api';
-import type { ProfessorStats } from '@/lib/types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function InicioScreen() {
-  const { role } = useAuth();
-  return role === 'teacher' ? <HomeTeacher /> : <HomeStudent />;
-}
-
-function HomeTeacher() {
-  const { profile, session, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const nombre = profile?.full_name ?? 'Profesor/a';
-  const [stats, setStats] = useState<ProfessorStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      (async () => {
-        if (!session?.user) return;
-        setLoading(true);
-        try {
-          const quizzes = await getMyQuizzes(session.user.id);
-          let completados = 0;
-          await Promise.all(
-            quizzes.map(async (q) => {
-              const s = await getQuizStats(q.id);
-              completados += s.completed;
-            }),
-          );
-          if (!active) return;
-          setStats({
-            estudiantes_totales: 0,
-            recursos: 0,
-            quizzes_completados: completados,
-            por_revisar: quizzes.filter((q) => !q.is_published).length,
-          });
-        } catch {
-          if (active) setStats({ estudiantes_totales: 0, recursos: 0, quizzes_completados: 0, por_revisar: 0 });
-        } finally {
-          if (active) setLoading(false);
-        }
-      })();
-      return () => { active = false; };
-    }, [session?.user]),
-  );
+  // Capturamos el rol real que viene desde el login
+  const { rol } = useLocalSearchParams<{ rol: 'estudiante' | 'profesor' }>();
+  const userRol = rol || 'estudiante';
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={styles.heroTeacher}>
-        <Text style={styles.roleTag}>MODO PROFESOR/A</Text>
-        <Text style={styles.heroName}>Hola, {nombre}</Text>
-        <Text style={styles.heroSub}>Panel de gestión</Text>
-      </View>
-
-      {loading ? (
-        <ActivityIndicator color={palette.primary} style={{ marginVertical: spacing.xl }} />
-      ) : (
-        <View style={styles.statsGrid}>
-          <StatCard label="Estudiantes" value={stats?.estudiantes_totales ?? 0} icon="people" />
-          <StatCard label="Recursos" value={stats?.recursos ?? 0} icon="documents" />
-          <StatCard label="Completados" value={stats?.quizzes_completados ?? 0} icon="checkmark-circle" />
-          <StatCard label="Borradores" value={stats?.por_revisar ?? 0} icon="create" />
-        </View>
-      )}
-
-      <TouchableOpacity
-        style={styles.ctaSecondary}
-        onPress={() => router.push('/professor/resource/create')}
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
       >
-        <Ionicons name="add-circle" size={22} color="#fff" />
-        <Text style={styles.ctaText}>Publicar un recurso</Text>
-      </TouchableOpacity>
+        {/* --- HEADER VERDE SUPERIOR --- */}
+        <View style={[styles.greenHeader, { paddingTop: insets.top + 15 }]}>
+          <View style={styles.userInfoRow}>
+            {/* Avatar Círculo Amarillo */}
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarText}>A</Text>
+            </View>
+            <View>
+              <Text style={styles.greetingText}>
+                {userRol === 'profesor' ? '¡Hola, docente!' : '¡Hola, exploradora!'}
+              </Text>
+              <Text style={styles.userNameText}>
+                {userRol === 'profesor' ? 'Prof. Alejandro' : 'Antonia'}
+              </Text>
+            </View>
+          </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
+          <Text style={styles.mainQuestion}>
+            {userRol === 'profesor' 
+              ? '¿Qué actividades coordinarás hoy?' 
+              : '¿Qué descubres hoy en el humedal?'}
+          </Text>
+        </View>
 
-function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
-  return (
-    <View style={styles.statCard}>
-      <Ionicons name={icon as any} size={24} color={palette.primary} />
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+        {/* --- CONTENIDO INFERIOR CON TARJETAS --- */}
+        <View style={styles.whiteSection}>
+          
+          {/* Tarjeta de Nivel / Estado */}
+          <View style={styles.cardLevel}>
+            <View style={styles.starCircle}>
+              <Text style={styles.starIcon}>⭐</Text>
+            </View>
+            <View style={styles.levelProgressContainer}>
+              <Text style={styles.levelTitle}>
+                {userRol === 'profesor' ? 'ESTADO DEL CURSO' : 'NIVEL 2 · EXPLORADOR DEL HUMEDAL'}
+              </Text>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: '60%' }]} />
+              </View>
+              <Text style={styles.progressText}>
+                {userRol === 'profesor' ? '85% Alumnos Activos' : '120 / 200 puntos'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Tarjeta Quiz Rápido */}
+          <View style={styles.cardQuiz}>
+            <Text style={styles.quizLabel}>QUIZ RÁPIDO</Text>
+            <Text style={styles.quizTitle}>Animales del humedal</Text>
+            <View style={styles.quizFooter}>
+              <View style={styles.quizBadge}>
+                <Text style={styles.quizBadgeText}>5 preguntas</Text>
+              </View>
+              <Text style={styles.quizPoints}>⭐ +50 pts</Text>
+              <TouchableOpacity style={styles.playButton}>
+                <Text style={styles.playButtonText}>Jugar →</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Sección ¿Sabías que...? */}
+          <Text style={styles.sectionTitle}>¿Sabías que...?</Text>
+          <Text style={styles.sectionSubtitle}>Un dato nuevo cada día</Text>
+
+          {/* Tarjeta del Dato del Día */}
+          <View style={styles.cardData}>
+            <Text style={styles.dataLabel}>DATO DEL DÍA</Text>
+            <Text style={styles.dataText}>
+              ¿Sabías que los humedales filtran el agua de forma natural, como un gran riñón verde?
+            </Text>
+            <TouchableOpacity>
+              <Text style={styles.viewMore}>Ver más datos ›</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Próximo Evento */}
+ 
+          <View style={styles.eventHeaderRow}>
+            <Text style={styles.sectionTitle}>Próximo evento</Text>
+            <TouchableOpacity onPress={() => router.push('/eventos')}>
+              <Text style={styles.viewAllEvents}>Ver todos →</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={[styles.sectionSubtitle, { marginBottom: 20 }]}>Calendario del humedal</Text>
+
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-function HomeStudent() {
-  const { profile, signOut } = useAuth();
-  const router = useRouter();
-  const nombre = profile?.full_name ?? 'explorador/a';
-
-  return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={styles.welcomeContainer}>
-        <Text style={styles.greetingText}>¡Hola, {nombre}!</Text>
-        <Text style={styles.subTitleText}>Escuela Monteverde</Text>
-        <Text style={styles.questionText}>¿Qué descubres hoy en el humedal?</Text>
-      </View>
-
-      <TouchableOpacity style={styles.quizCta} onPress={() => router.push('/quizzes')}>
-        <Text style={styles.quizCtaTitle}>Quiz rápido</Text>
-        <Text style={styles.quizCtaText}>Pon a prueba lo que sabes del humedal →</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: {
+  container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fbf4e6', // Fondo crema de la app
   },
-  content: {
-    paddingTop: spacing.xl,
-    paddingHorizontal: spacing.xxl,
+  scrollContent: {
     paddingBottom: 100,
   },
-  heroTeacher: {
-    backgroundColor: palette.primaryD,
-    borderRadius: radius.xl,
-    padding: spacing.xl,
-    marginBottom: spacing.xl,
+  // --- HEADER ESTILO MAQUETA ---
+  greenHeader: {
+    backgroundColor: '#355343', // Verde bosque de la imagen
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 30,
   },
-  roleTag: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: palette.accent,
-    letterSpacing: 1.5,
-    marginBottom: spacing.xs,
-  },
-  heroName: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  heroSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 2,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: palette.card,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: palette.line,
-    padding: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: palette.ink,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: palette.sub,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  ctaSecondary: {
-    backgroundColor: palette.secondary,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
+  userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: 20,
+    gap: 12,
   },
-  ctaText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 16,
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ebdcc5', // Color crema/amarillo del avatar
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  welcomeContainer: {
-    marginBottom: spacing.xl,
+  avatarText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#242424',
   },
   greetingText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontSize: 14,
+    color: '#ebdcc5',
+    opacity: 0.9,
   },
-  subTitleText: {
+  userNameText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  mainQuestion: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    lineHeight: 32,
+    maxWidth: '85%',
+  },
+  // --- SECCIÓN INFERIOR BLANCA ---
+  whiteSection: {
+    paddingHorizontal: 24,
+    marginTop: -15, // Solape estético suave
+  },
+  cardLevel: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  starCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: '#ebdcc5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  starIcon: {
     fontSize: 20,
-    fontWeight: '300',
-    color: '#000000',
+  },
+  levelProgressContainer: {
+    flex: 1,
+  },
+  levelTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#7e7568',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#f2f0eb',
+    borderRadius: 4,
+    width: '100%',
+    marginBottom: 6,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#355343',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#355343',
+  },
+  // --- TARJETA QUIZ TERRACOTA ---
+  cardQuiz: {
+    backgroundColor: '#c46d46', // Color arcilla/naranja del mock
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 25,
+  },
+  quizLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#ffffff',
+    opacity: 0.8,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  quizTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 16,
+  },
+  quizFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quizBadge: {
+    backgroundColor: '#a35733',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  quizBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  quizPoints: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  playButton: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
+  },
+  playButtonText: {
+    color: '#c46d46',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  // --- DATOS Y TEXTOS ---
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#242424',
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#7e7568',
     marginTop: 2,
   },
-  questionText: {
-    fontSize: 25,
-    color: '#000000',
-    marginTop: 6,
-    fontWeight: '400',
+  cardData: {
+    backgroundColor: '#dfae4b', // Mostaza/Amarillo del dato del día
+    borderRadius: 24,
+    padding: 20,
+    marginTop: 12,
+    marginBottom: 25,
   },
-  quizCta: {
-    backgroundColor: palette.secondary,
-    borderRadius: radius.xl,
-    padding: spacing.xl,
-    marginBottom: spacing.xl,
-  },
-  quizCtaTitle: {
-    color: '#fff',
-    fontSize: 20,
+  dataLabel: {
+    fontSize: 10,
     fontWeight: '800',
+    color: '#242424',
+    opacity: 0.6,
+    letterSpacing: 0.5,
+    marginBottom: 6,
   },
-  quizCtaText: {
-    color: '#fff',
+  dataText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#242424',
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  viewMore: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#242424',
+  },
+  eventHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  viewAllEvents: {
     fontSize: 14,
-    marginTop: 4,
-    opacity: 0.95,
-  },
-  logoutButton: {
-    marginTop: 10,
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  logoutText: {
-    color: palette.rose,
-    fontWeight: '600',
-    fontSize: 15,
+    fontWeight: '700',
+    color: '#355343',
   },
 });
