@@ -28,11 +28,28 @@ Visibilizar y poner en valor los servicios ecosistémicos del humedal Vegas de C
 | Capa | Tecnología |
 | --- | --- |
 | App móvil | React Native + Expo |
-| UI | React Native Paper |
-| Navegación | React Navigation |
+| Navegación | Expo Router |
 | Backend / base de datos | Supabase |
 | Integración | supabase-js + TypeScript |
 | Lógica de negocio | PostgreSQL, triggers y Row Level Security |
+
+## Estado de Implementación
+
+Esta primera versión integra la app móvil con Supabase. Casos de uso conectados a datos reales:
+
+| Caso de uso | Estado |
+| --- | --- |
+| Autenticación con roles (login, sesión persistente, cierre de sesión) | ✅ Integrado |
+| Catálogo de flora y fauna | ✅ Integrado |
+| Quizzes interactivos (jugar, puntos y medallas) | ✅ Integrado |
+| Gestión de quizzes del profesor (crear, editar, estadísticas) | ✅ Integrado |
+| Perfil y gamificación (puntos, nivel, medallas) | ✅ Integrado |
+| Aula virtual con recursos educativos | ⏳ Interfaz lista, pendiente de conexión |
+| Calendario comunitario de actividades | ⏳ Interfaz lista, pendiente de conexión |
+| Módulo "Sabías que..." y cultura Mapuche | ⏳ Interfaz lista, pendiente de conexión |
+
+El backend (migraciones, RLS y triggers) cubre los ocho casos de uso; las tres pantallas
+pendientes ya tienen su capa de API lista y se conectarán en una próxima iteración.
 
 ## Documentación
 
@@ -63,9 +80,10 @@ supabase/migrations/0001_schema.sql
 supabase/migrations/0002_functions_triggers.sql
 supabase/migrations/0003_rls_policies.sql
 supabase/migrations/0004_security_hardening.sql
+supabase/migrations/0005_award_threshold_badges.sql
 ```
 
-Opcional:
+Opcional (datos de ejemplo para el catálogo, medallas y quizzes):
 
 ```text
 supabase/seed/seed.sql
@@ -92,11 +110,18 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 ```bash
 cd src/frontend
 npm install
-npm run typecheck
+npm run lint
 npm run start
 ```
 
-Con `npm run start`, Expo permite abrir la app en Expo go
+Con `npm run start`, Expo permite abrir la app en Expo Go.
+
+### 4. Acceso a la app
+
+El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determina
+automáticamente desde `profiles.role`. Todo usuario registrado nace como `student`; para
+convertir una cuenta en profesor se actualiza el rol desde Supabase (ver
+[Contrato API](docs/CONTRATO_API.md)).
 
 ## Equipo de Desarrollo
 
