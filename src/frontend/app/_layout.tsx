@@ -5,11 +5,7 @@ import 'react-native-reanimated';
 
 import { AuthProvider, useAuth } from '@/lib/auth/AuthContext';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-const RUTAS_PUBLICAS = ['login', 'loginProfesor', 'nuevaContrasena'];
+const RUTAS_PUBLICAS = ['login', 'nuevaContrasena'];
 
 function AuthGate() {
   const { session, loading } = useAuth();
@@ -23,7 +19,7 @@ function AuthGate() {
     const enRutaPublica = !ruta || RUTAS_PUBLICAS.includes(ruta);
 
     if (!session && !enRutaPublica) {
-      router.replace('/');
+      router.replace('/login');
     } else if (session && enRutaPublica) {
       router.replace('/(tabs)');
     }
@@ -41,7 +37,6 @@ function AuthGate() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="login" />
-      <Stack.Screen name="loginProfesor" />
       <Stack.Screen name="nuevaContrasena" />
       <Stack.Screen name="(tabs)" />
     </Stack>

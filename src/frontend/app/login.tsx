@@ -36,9 +36,7 @@ export default function LoginScreen() {
         <Text style={styles.title}>Bienvenido{"\n"}de vuelta</Text>
         
         <View style={styles.roleContainer}>
-          <Text style={styles.roleText}>
-            Inicia sesión como <Text style={styles.roleHighlight}>estudiante</Text>.
-          </Text>
+          <Text style={styles.roleText}>Ingresa con tu correo institucional.</Text>
         </View>
       </View>
 

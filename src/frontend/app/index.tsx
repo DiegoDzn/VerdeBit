@@ -5,19 +5,8 @@ import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 export default function WelcomeScreen() {
   const router = useRouter();
 
-  const handleSelectRole = (role: 'profesor' | 'estudiante') => {
-    // CONDICIÓN: Si es estudiante va a '/login', si es profesor va a '/loginProfesor'
-    if (role === 'estudiante') {
-      router.push({
-        pathname: '/login',
-        params: { role: 'estudiante' }
-      });
-    } else {
-      router.push({
-        pathname: '/loginProfesor',
-        params: { role: 'profesor' }
-      });
-    }
+  const handleIniciar = () => {
+    router.push('/login');
   };
 
   return (
@@ -46,22 +35,13 @@ export default function WelcomeScreen() {
           <Text style={styles.locationTag}>TEMUCO · WALLMAPU</Text>
         </View>
 
-        {/* Contenedor Inferior: Botones de Rol */}
+        {/* Contenedor Inferior: Botón de ingreso */}
         <View style={styles.bottomSection}>
-          {/* Botón Estudiante (Lleva a login.tsx) */}
-          <TouchableOpacity 
-            style={[styles.button, styles.studentButton]} 
-            onPress={() => handleSelectRole('estudiante')}
+          <TouchableOpacity
+            style={[styles.button, styles.studentButton]}
+            onPress={handleIniciar}
           >
-            <Text style={[styles.buttonText, styles.studentButtonText]}>Soy estudiante</Text>
-          </TouchableOpacity>
-
-          {/* Botón Profesor (Lleva a loginProfesor.tsx) */}
-          <TouchableOpacity 
-            style={[styles.button, styles.teacherButton]} 
-            onPress={() => handleSelectRole('profesor')}
-          >
-            <Text style={[styles.buttonText, styles.teacherButtonText]}>Soy profesor/a</Text>
+            <Text style={[styles.buttonText, styles.studentButtonText]}>Iniciar sesión</Text>
           </TouchableOpacity>
         </View>
 
