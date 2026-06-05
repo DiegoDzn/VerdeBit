@@ -2,21 +2,27 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { useAuth } from '@/lib/auth/AuthContext';
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [cargando, setCargando] = useState(false);
   const router = useRouter();
+  const { signIn } = useAuth();
 
-  const handleLogin = () => {
-  if (email.trim() === '' || password.trim() === '') {
-    Alert.alert('Error', 'Por favor llena todos los campos');
-    return;
-  }
-  router.replace({
-    pathname: '/(tabs)',
-    params: { rol: 'profesor' }
-  });
-};
+  const handleLogin = async () => {
+    if (email.trim() === '' || password.trim() === '') {
+      Alert.alert('Error', 'Por favor llena todos los campos');
+      return;
+    }
+    setCargando(true);
+    const { error } = await signIn(email, password);
+    setCargando(false);
+    if (error) {
+      Alert.alert('Error', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -74,8 +80,8 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.bottomSection}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleLogin}>
-          <Text style={styles.submitButtonText}>Iniciar sesión</Text>
+        <TouchableOpacity style={styles.submitButton} onPress={handleLogin} disabled={cargando}>
+          <Text style={styles.submitButtonText}>{cargando ? 'Ingresando…' : 'Iniciar sesión'}</Text>
         </TouchableOpacity>
         
         <Text style={styles.disclaimerText}>
