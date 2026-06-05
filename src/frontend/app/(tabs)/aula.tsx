@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useGlobalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
   FlatList,
@@ -10,6 +9,8 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useAuth } from '@/lib/auth/AuthContext';
 
 // --- DATA MOCK ---
 interface Recurso {
@@ -33,9 +34,8 @@ export default function AulaScreen() {
   const insets = useSafeAreaInsets();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todos');
 
-  // Captura del rol global persistente
-  const { rol } = useGlobalSearchParams<{ rol: 'estudiante' | 'profesor' }>();
-  const userRol = rol || 'estudiante';
+  const { role } = useAuth();
+  const esProfesor = role === 'teacher';
 
   // Filtrado por categoría
   const datosFiltrados = DATOS_RECURSOS.filter((item) => {
@@ -81,7 +81,7 @@ export default function AulaScreen() {
         data={datosFiltrados}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={[styles.listContainer, { paddingBottom: userRol === 'profesor' ? 120 : 30 }]}
+        contentContainerStyle={[styles.listContainer, { paddingBottom: esProfesor ? 120 : 30 }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
@@ -125,7 +125,7 @@ export default function AulaScreen() {
       />
 
       {/* --- BOTÓN FLOTANTE SUBIR ARCHIVO (Solo Profesor) --- */}
-      {userRol === 'profesor' && (
+      {esProfesor && (
         <TouchableOpacity style={[styles.fabButton, { bottom: insets.bottom + 20 }]} activeOpacity={0.8}>
           <Ionicons name="add" size={24} color="#ffffff" />
           <Text style={styles.fabText}>Subir archivo</Text>

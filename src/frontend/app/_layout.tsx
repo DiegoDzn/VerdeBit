@@ -19,7 +19,8 @@ function AuthGate() {
   useEffect(() => {
     if (loading) return;
 
-    const enRutaPublica = segments.length === 0 || RUTAS_PUBLICAS.includes(segments[0]);
+    const ruta = segments[0] as string | undefined;
+    const enRutaPublica = !ruta || RUTAS_PUBLICAS.includes(ruta);
 
     if (!session && !enRutaPublica) {
       router.replace('/');

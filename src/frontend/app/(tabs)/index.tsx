@@ -1,14 +1,15 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/lib/auth/AuthContext';
+
 export default function InicioScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  // Capturamos el rol real que viene desde el login
-  const { rol } = useLocalSearchParams<{ rol: 'estudiante' | 'profesor' }>();
-  const userRol = rol || 'estudiante';
+  const { role } = useAuth();
+  const esProfesor = role === 'teacher';
 
   return (
     <View style={styles.container}>
@@ -27,16 +28,16 @@ export default function InicioScreen() {
             </View>
             <View>
               <Text style={styles.greetingText}>
-                {userRol === 'profesor' ? '¡Hola, docente!' : '¡Hola, exploradora!'}
+                {esProfesor ? '¡Hola, docente!' : '¡Hola, exploradora!'}
               </Text>
               <Text style={styles.userNameText}>
-                {userRol === 'profesor' ? 'Prof. Alejandro' : 'Antonia'}
+                {esProfesor ? 'Prof. Alejandro' : 'Antonia'}
               </Text>
             </View>
           </View>
 
           <Text style={styles.mainQuestion}>
-            {userRol === 'profesor' 
+            {esProfesor 
               ? '¿Qué actividades coordinarás hoy?' 
               : '¿Qué descubres hoy en el humedal?'}
           </Text>
@@ -52,13 +53,13 @@ export default function InicioScreen() {
             </View>
             <View style={styles.levelProgressContainer}>
               <Text style={styles.levelTitle}>
-                {userRol === 'profesor' ? 'ESTADO DEL CURSO' : 'NIVEL 2 · EXPLORADOR DEL HUMEDAL'}
+                {esProfesor ? 'ESTADO DEL CURSO' : 'NIVEL 2 · EXPLORADOR DEL HUMEDAL'}
               </Text>
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: '60%' }]} />
               </View>
               <Text style={styles.progressText}>
-                {userRol === 'profesor' ? '85% Alumnos Activos' : '120 / 200 puntos'}
+                {esProfesor ? '85% Alumnos Activos' : '120 / 200 puntos'}
               </Text>
             </View>
           </View>

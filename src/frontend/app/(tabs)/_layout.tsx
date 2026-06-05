@@ -1,15 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, useLocalSearchParams, usePathname } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/lib/auth/AuthContext';
+
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  
-  const { rol } = useLocalSearchParams<{ rol: 'estudiante' | 'profesor' }>();
-  const userRol = rol || 'estudiante'; 
+
+  const { role } = useAuth();
+  const esProfesor = role === 'teacher';
 
   const tabBarHeight = Platform.OS === 'ios' ? 75 + insets.bottom : 80 + insets.bottom;
 
@@ -63,12 +65,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="aulaverde"
         options={{
-          title: userRol === 'profesor' ? 'Cursos' : 'Quizzes',
+          title: esProfesor ? 'Cursos' : 'Quizzes',
           tabBarButton: (props) => (
             <CustomTabButton 
               {...props} 
               icon="school" 
-              label={userRol === 'profesor' ? 'Cursos' : 'Quizzes'} 
+              label={esProfesor ? 'Cursos' : 'Quizzes'} 
               isActive={isTabActive('aulaverde')} 
               insetsBottom={insets.bottom} 
             />
