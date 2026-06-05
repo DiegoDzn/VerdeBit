@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   ScrollView,
   StyleSheet,
@@ -11,44 +12,55 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Categorías del mockup
-const CATEGORIAS = ['Todos', 'Flora', 'Fauna', 'Aves', 'Anfibios'];
+import { listSpecies } from '@/lib/catalogo/api';
+import type { Species, SpeciesKind } from '@/lib/types';
 
-// Datos de las especies con los colores de fondo del mockup
-const ESPECIES_MOCK = [
-  {
-    id: '1',
-    nombre: 'Pidén',
-    cientifico: 'Pardirallus sanguinolentus',
-    tipo: 'Ave',
-    colorBg: '#a67c5d', // Café arcilla
-  },
-  {
-    id: '2',
-    nombre: 'Pato Jergón',
-    cientifico: 'Anas georgica',
-    tipo: 'Ave',
-    colorBg: '#6a97b4', // Azul grisáceo
-  },
-  {
-    id: '3',
-    nombre: 'Totora',
-    cientifico: 'Schoenoplectus californicus',
-    tipo: 'Planta',
-    colorBg: '#6d8c60', // Verde musgo
-  },
-  {
-    id: '4',
-    nombre: 'Ranita de Darwin',
-    cientifico: 'Rhinoderma darwinii',
-    tipo: 'Anfibio',
-    colorBg: '#768d56', // Verde oliva
-  },
-];
+const CATEGORIAS = ['Todos', 'Flora', 'Fauna'];
+
+const COLORES_TARJETA = ['#a67c5d', '#6a97b4', '#6d8c60', '#768d56'];
+
+const KIND_POR_CATEGORIA: Record<string, SpeciesKind | undefined> = {
+  Todos: undefined,
+  Flora: 'flora',
+  Fauna: 'fauna',
+};
 
 export default function CatalogoScreen() {
   const insets = useSafeAreaInsets();
   const [categoriaActiva, setCategoriaActiva] = useState('Todos');
+  const [busqueda, setBusqueda] = useState('');
+  const [especies, setEspecies] = useState<Species[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let activo = true;
+    setCargando(true);
+    setError(null);
+    listSpecies(KIND_POR_CATEGORIA[categoriaActiva])
+      .then((data) => {
+        if (activo) setEspecies(data);
+      })
+      .catch((e) => {
+        if (activo) setError(e instanceof Error ? e.message : 'No se pudo cargar el catálogo.');
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [categoriaActiva]);
+
+  const especiesFiltradas = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    if (!q) return especies;
+    return especies.filter(
+      (e) =>
+        e.common_name.toLowerCase().includes(q) ||
+        e.scientific_name.toLowerCase().includes(q),
+    );
+  }, [especies, busqueda]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
@@ -62,10 +74,12 @@ export default function CatalogoScreen() {
       {/* --- BUSCADOR --- */}
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color="#7e7568" style={styles.searchIcon} />
-        <TextInput 
-          placeholder="Buscar especie..." 
+        <TextInput
+          placeholder="Buscar especie..."
           placeholderTextColor="#a1998e"
           style={styles.searchInput}
+          value={busqueda}
+          onChangeText={setBusqueda}
         />
       </View>
 
@@ -93,37 +107,46 @@ export default function CatalogoScreen() {
         </ScrollView>
       </View>
 
-      {/* --- GRILLA DE ESPECIES (2 Columnas) --- */}
-      <FlatList
-        data={ESPECIES_MOCK}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.gridRow}
-        contentContainerStyle={styles.gridContent}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            {/* Contenedor de la Foto simulada */}
-            <View style={[styles.imageContainer, { backgroundColor: item.colorBg }]}>
-              {/* Badge del Tipo */}
-              <View style={styles.typeBadge}>
-                <Text style={styles.typeBadgeText}>{item.tipo}</Text>
-              </View>
-              
-              {/* Marcador de posición de foto */}
-              <View style={styles.photoPlaceholder}>
-                <Text style={styles.photoPlaceholderText}>foto {item.nombre.toLowerCase()}</Text>
-              </View>
+      {cargando ? (
+        <View style={styles.estadoVacio}>
+          <ActivityIndicator size="large" color="#355343" />
+        </View>
+      ) : error ? (
+        <View style={styles.estadoVacio}>
+          <Text style={styles.estadoTexto}>{error}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={especiesFiltradas}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.gridRow}
+          contentContainerStyle={styles.gridContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.estadoVacio}>
+              <Text style={styles.estadoTexto}>No hay especies para mostrar.</Text>
             </View>
+          }
+          renderItem={({ item, index }) => (
+            <View style={styles.card}>
+              <View style={[styles.imageContainer, { backgroundColor: COLORES_TARJETA[index % COLORES_TARJETA.length] }]}>
+                <View style={styles.typeBadge}>
+                  <Text style={styles.typeBadgeText}>{item.kind === 'flora' ? 'Flora' : 'Fauna'}</Text>
+                </View>
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoPlaceholderText}>foto {item.common_name.toLowerCase()}</Text>
+                </View>
+              </View>
 
-            {/* Textos Informativos */}
-            <View style={styles.infoContainer}>
-              <Text style={styles.speciesName}>{item.nombre}</Text>
-              <Text style={styles.scientificName}>{item.cientifico}</Text>
+              <View style={styles.infoContainer}>
+                <Text style={styles.speciesName}>{item.common_name}</Text>
+                <Text style={styles.scientificName}>{item.scientific_name}</Text>
+              </View>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
 
     </View>
   );
@@ -266,5 +289,17 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#7e7568',
     marginTop: 2,
+  },
+  estadoVacio: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+    paddingHorizontal: 24,
+  },
+  estadoTexto: {
+    fontSize: 15,
+    color: '#7e7568',
+    textAlign: 'center',
   },
 });
