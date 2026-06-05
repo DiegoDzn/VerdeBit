@@ -1,0 +1,486 @@
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useAuth } from '@/lib/auth/AuthContext';
+import {
+  getAllBadges,
+  getProfile,
+  POINTS_PER_LEVEL,
+  type Badge,
+  type StudentProfile,
+} from '@/lib/gamificacion/api';
+
+const COLORES_MEDALLA = ['#7E9362', '#6289A3', '#D9A74A', '#C86D51'];
+
+function inicial(nombre: string | null | undefined): string {
+  return nombre?.trim()?.charAt(0)?.toUpperCase() ?? '?';
+}
+
+export default function PerfilScreen() {
+  const { role } = useAuth();
+  if (role === 'teacher') {
+    return <PerfilProfesor />;
+  }
+  return <PerfilEstudiante />;
+}
+
+function PerfilEstudiante() {
+  const insets = useSafeAreaInsets();
+  const { session, signOut } = useAuth();
+  const userId = session?.user.id;
+
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [todasMedallas, setTodasMedallas] = useState<Badge[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    let activo = true;
+    setCargando(true);
+    Promise.all([getProfile(userId), getAllBadges()])
+      .then(([p, medallas]) => {
+        if (activo) {
+          setProfile(p);
+          setTodasMedallas(medallas);
+        }
+      })
+      .catch((e) => {
+        if (activo) setError(e instanceof Error ? e.message : 'No se pudo cargar tu perfil.');
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [userId]);
+
+  if (cargando) {
+    return (
+      <View style={[styles.container, styles.centro]}>
+        <ActivityIndicator size="large" color="#355343" />
+      </View>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <View style={[styles.container, styles.centro]}>
+        <Text style={styles.estadoTexto}>{error ?? 'No se pudo cargar tu perfil.'}</Text>
+      </View>
+    );
+  }
+
+  const ganadasIds = new Set(profile.badges.map((b) => b.badge_id));
+  const puntosEnNivel = profile.total_points % POINTS_PER_LEVEL;
+
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
+          <View style={styles.profileHeaderRow}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarText}>{inicial(profile.full_name)}</Text>
+            </View>
+            <View style={styles.headerInfo}>
+              <Text style={styles.userName}>{profile.full_name}</Text>
+              <Text style={styles.userSubtitle}>Escuela Monteverde</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.mainContentWrapper}>
+          <View style={styles.levelCard}>
+            <View style={styles.levelRow}>
+              <View style={[styles.medalBadge, { backgroundColor: '#D9A74A' }]}>
+                <Ionicons name="star" size={24} color="#ffffff" />
+              </View>
+              <View style={styles.levelInfo}>
+                <Text style={styles.levelTag}>NIVEL {profile.level}</Text>
+                <Text style={styles.levelTitle}>Explorador del Humedal</Text>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: `${puntosEnNivel}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{puntosEnNivel} / {POINTS_PER_LEVEL} pts para subir</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#FDF4DF' }]}>
+                <Ionicons name="star" size={16} color="#D9A74A" />
+              </View>
+              <Text style={styles.statNumber}>{profile.total_points}</Text>
+              <Text style={styles.statLabel}>PUNTOS</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#FBECE8' }]}>
+                <Ionicons name="medal" size={16} color="#C86D51" />
+              </View>
+              <Text style={styles.statNumber}>{profile.badges.length}</Text>
+              <Text style={styles.statLabel}>MEDALLAS</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#EBF0EC' }]}>
+                <Ionicons name="leaf" size={16} color="#355343" />
+              </View>
+              <Text style={styles.statNumber}>{profile.level}</Text>
+              <Text style={styles.statLabel}>NIVEL</Text>
+            </View>
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Medallas</Text>
+            <Text style={styles.sectionSubtitle}>{profile.badges.length} de {todasMedallas.length} ganadas</Text>
+          </View>
+
+          <View style={styles.medalGrid}>
+            {todasMedallas.map((medalla, index) => {
+              const ganada = ganadasIds.has(medalla.id);
+              return (
+                <View key={medalla.id} style={styles.medalGridItem}>
+                  <View style={[styles.medalCircle, { backgroundColor: ganada ? COLORES_MEDALLA[index % COLORES_MEDALLA.length] : '#E2DEC9' }]}>
+                    <Ionicons name={ganada ? 'star' : 'lock-closed'} size={ganada ? 28 : 24} color={ganada ? '#ffffff' : '#8E8A7E'} />
+                  </View>
+                  {ganada ? <Text style={styles.medalGridLabel}>{medalla.name}</Text> : null}
+                </View>
+              );
+            })}
+          </View>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Ionicons name="log-out-outline" size={18} color="#C86D51" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function PerfilProfesor() {
+  const insets = useSafeAreaInsets();
+  const { session, profile, signOut } = useAuth();
+
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
+          <View style={styles.profileHeaderRow}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarText}>{inicial(profile?.full_name)}</Text>
+            </View>
+            <View style={styles.headerInfo}>
+              <View style={styles.profTag}>
+                <Text style={styles.profTagText}>PROFESOR/A</Text>
+              </View>
+              <Text style={styles.userName}>{profile?.full_name ?? 'Profesor/a'}</Text>
+              <Text style={styles.userSubtitle}>Escuela Monteverde</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.mainContentWrapper}>
+          <View style={styles.infoTableCard}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableLabel}>ESCUELA</Text>
+              <Text style={styles.tableValue}>Escuela Monteverde • Temuco</Text>
+            </View>
+            <View style={styles.tableDivider} />
+            <View style={styles.tableRow}>
+              <Text style={styles.tableLabel}>CORREO</Text>
+              <Text style={styles.tableValue}>{session?.user.email ?? '—'}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Ionicons name="log-out-outline" size={18} color="#C86D51" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9F6EE',
+  },
+  centro: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  estadoTexto: {
+    fontSize: 15,
+    color: '#8E8A7E',
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  headerBg: {
+    backgroundColor: '#2B4C3F',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 60,
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarCircle: {
+    width: 76,
+    height: 76,
+    borderRadius: 24,
+    backgroundColor: '#D9A74A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#2B4C3F',
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  profTag: {
+    backgroundColor: '#D9A74A',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  profTagText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#2B4C3F',
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  userSubtitle: {
+    fontSize: 13,
+    color: '#E2DEC9',
+    marginTop: 2,
+    opacity: 0.9,
+  },
+  mainContentWrapper: {
+    paddingHorizontal: 24,
+    marginTop: -40,
+  },
+  levelCard: {
+    backgroundColor: '#FFFDF9',
+    borderRadius: 24,
+    padding: 18,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+  },
+  levelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  medalBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  levelInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  levelTag: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#8E8A7E',
+    letterSpacing: 0.5,
+  },
+  levelTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#242424',
+    marginTop: 1,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#EBF0EC',
+    borderRadius: 4,
+    marginTop: 8,
+    width: '100%',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#355343',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 11,
+    color: '#8E8A7E',
+    marginTop: 6,
+    fontWeight: '600',
+  },
+  infoTableCard: {
+    backgroundColor: '#FFFDF9',
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  tableLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#8E8A7E',
+    letterSpacing: 0.5,
+  },
+  tableValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#242424',
+  },
+  tableDivider: {
+    height: 1,
+    backgroundColor: '#F2EFE6',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFDF9',
+    borderRadius: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+    padding: 14,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+  },
+  statIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#242424',
+  },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#8E8A7E',
+    marginTop: 2,
+    letterSpacing: 0.3,
+  },
+  sectionHeader: {
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#242424',
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: '#8E8A7E',
+    marginTop: 2,
+  },
+  medalGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  medalGridItem: {
+    width: '31%',
+    backgroundColor: '#FFFDF9',
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    minHeight: 120,
+    justifyContent: 'center',
+  },
+  medalCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+  },
+  medalGridLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#242424',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 13,
+  },
+  logoutButton: {
+    marginTop: 28,
+    backgroundColor: '#FFFDF9',
+    borderRadius: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#ebdcc5',
+  },
+  logoutText: {
+    color: '#C86D51',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+});

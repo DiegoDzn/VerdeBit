@@ -8,7 +8,12 @@ El proyecto busca conectar a estudiantes de educación básica y sus familias co
 
 - [Descripción](#descripción)
 - [Objetivo del proyecto](#objetivo-del-proyecto)
+- [Alcance](#alcance)
+- [Estado de implementación](#estado-de-implementación)
 - [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Instrucciones de uso](#instrucciones-de-uso)
+- [Documentación](#documentación)
 - [Roles del equipo](#roles-del-equipo)
 
 ## Descripción
@@ -35,17 +40,106 @@ Desarrollar una aplicación móvil que permita visibilizar los servicios ecosist
 - Quizzes interactivos.
 - Sistema de gamificación con puntos y medallas.
 - Calendario comunitario de actividades.
-- Módulo “¿Sabías que...?”.
+- Módulo "¿Sabías que...?".
 - Sección de cultura Mapuche.
 - Perfil del estudiante con progreso acumulado.
 
+## Estado de Implementación
+
+Esta primera versión integra la app móvil con Supabase. Casos de uso conectados a datos reales:
+
+| Caso de uso | Estado |
+| --- | --- |
+| Autenticación con roles (login, sesión persistente, cierre de sesión) | ✅ Integrado |
+| Catálogo de flora y fauna | ✅ Integrado |
+| Quizzes interactivos (jugar, puntos y medallas) | ✅ Integrado |
+| Gestión de quizzes del profesor (crear, editar, estadísticas) | ✅ Integrado |
+| Perfil y gamificación (puntos, nivel, medallas) | ✅ Integrado |
+| Aula virtual con recursos educativos | ⏳ Interfaz lista, pendiente de conexión |
+| Calendario comunitario de actividades | ⏳ Interfaz lista, pendiente de conexión |
+| Módulo "Sabías que..." y cultura Mapuche | ⏳ Interfaz lista, pendiente de conexión |
+
+El backend (migraciones, RLS y triggers) cubre los ocho casos de uso; las tres pantallas pendientes ya tienen su capa de API lista y se conectarán en una próxima iteración.
+
 ## Tecnologías utilizadas
 
-| Capa | Tecnología 
-|---|---|
-| Frontend | React Native + Expo
-| Backend / Base de datos | Supabase 
-| Control de versiones | Git + GitHub
+| Capa | Tecnología |
+| --- | --- |
+| Frontend / App móvil | React Native + Expo |
+| Navegación | Expo Router |
+| Backend / Base de datos | Supabase (PostgreSQL) |
+| Integración | supabase-js + TypeScript |
+| Lógica de negocio | Triggers y Row Level Security |
+| Control de versiones | Git + GitHub |
+
+## Estructura del Proyecto
+
+```text
+.
+├── data/            # Datos base del humedal, catastros y placeholders
+├── docs/            # Documentación del proyecto, objetivos y acuerdos
+├── src/
+│   └── frontend/    # App móvil React Native / Expo
+├── supabase/
+│   ├── migrations/  # Migraciones SQL
+│   └── seed/        # Datos iniciales para poblar la base
+└── README.md
+```
+
+## Instrucciones de Uso
+
+### 1. Configurar Supabase
+
+Crear un proyecto en Supabase y ejecuta los scripts SQL en este orden desde el SQL Editor:
+
+```text
+supabase/migrations/0001_schema.sql
+supabase/migrations/0002_functions_triggers.sql
+supabase/migrations/0003_rls_policies.sql
+supabase/migrations/0004_security_hardening.sql
+supabase/migrations/0005_award_threshold_badges.sql
+```
+
+Opcional (datos de ejemplo para el catálogo, medallas y quizzes):
+
+```text
+supabase/seed/seed.sql
+```
+
+### 2. Configurar variables del frontend
+
+Crear el archivo local de entorno:
+
+```bash
+cd src/frontend
+cp .env.example .env
+```
+
+Completar en `.env`:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+```
+
+### 3. Instalar y ejecutar la app
+
+```bash
+cd src/frontend
+npm install
+npm run lint
+npm run start
+```
+
+Con `npm run start`, Expo permite abrir la app en Expo Go.
+
+### 4. Acceso a la app
+
+El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determina automáticamente desde `profiles.role`. Todo usuario registrado nace como `student`; para convertir una cuenta en profesor se actualiza el rol desde Supabase (ver [Contrato API](docs/CONTRATO_API.md)).
+
+## Documentación
+
+- [Contrato API](docs/CONTRATO_API.md)
 
 ## Roles del equipo
 
