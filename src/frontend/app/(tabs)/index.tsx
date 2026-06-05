@@ -73,7 +73,7 @@ export default function InicioScreen() {
                 <Text style={styles.quizBadgeText}>5 preguntas</Text>
               </View>
               <Text style={styles.quizPoints}>⭐ +50 pts</Text>
-              <TouchableOpacity style={styles.playButton}>
+              <TouchableOpacity style={styles.playButton} onPress={() => router.push('/(tabs)/aulaverde')}>
                 <Text style={styles.playButtonText}>Jugar →</Text>
               </TouchableOpacity>
             </View>
