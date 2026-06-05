@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useGlobalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,160 +10,190 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/lib/auth/AuthContext';
+import {
+  getAllBadges,
+  getProfile,
+  POINTS_PER_LEVEL,
+  type Badge,
+  type StudentProfile,
+} from '@/lib/gamificacion/api';
+
+const COLORES_MEDALLA = ['#7E9362', '#6289A3', '#D9A74A', '#C86D51'];
+
+function inicial(nombre: string | null | undefined): string {
+  return nombre?.trim()?.charAt(0)?.toUpperCase() ?? '?';
+}
+
 export default function PerfilScreen() {
+  const { role } = useAuth();
+  if (role === 'teacher') {
+    return <PerfilProfesor />;
+  }
+  return <PerfilEstudiante />;
+}
+
+function PerfilEstudiante() {
   const insets = useSafeAreaInsets();
-  const { rol } = useGlobalSearchParams<{ rol: 'estudiante' | 'profesor' }>();
-  const userRol = rol || 'estudiante';
+  const { session, signOut } = useAuth();
+  const userId = session?.user.id;
 
-  // ==========================================
-  // VISTA: ESTUDIANTE (12 · Perfil estudiante)
-  // ==========================================
-  if (userRol === 'estudiante') {
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [todasMedallas, setTodasMedallas] = useState<Badge[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    let activo = true;
+    setCargando(true);
+    Promise.all([getProfile(userId), getAllBadges()])
+      .then(([p, medallas]) => {
+        if (activo) {
+          setProfile(p);
+          setTodasMedallas(medallas);
+        }
+      })
+      .catch((e) => {
+        if (activo) setError(e instanceof Error ? e.message : 'No se pudo cargar tu perfil.');
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [userId]);
+
+  if (cargando) {
     return (
-      <View style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          
-          {/* Header Verde Superior */}
-          <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
-            <View style={styles.profileHeaderRow}>
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarText}>A</Text>
-              </View>
-              <View style={styles.headerInfo}>
-                <Text style={styles.userName}>Antonia Curihuinca ☀️</Text>
-                <Text style={styles.userSubtitle}>4° Básico • Escuela Monteverde</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Contenido con Margen Negativo para traslapar */}
-          <View style={styles.mainContentWrapper}>
-            
-            {/* Tarjeta de Nivel / Progreso */}
-            <View style={styles.levelCard}>
-              <View style={styles.levelRow}>
-                <View style={[styles.medalBadge, { backgroundColor: '#D9A74A' }]}>
-                  <Ionicons name="star" size={24} color="#ffffff" />
-                </View>
-                <View style={styles.levelInfo}>
-                  <Text style={styles.levelTag}>NIVEL 2</Text>
-                  <Text style={styles.levelTitle}>Explorador del Humedal</Text>
-                  {/* Barra de Progreso */}
-                  <View style={styles.progressBarBg}>
-                    <View style={[styles.progressBarFill, { width: '60%' }]} />
-                  </View>
-                  <Text style={styles.progressText}>120 / 200 pts para subir</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Fila de 3 Estadísticas */}
-            <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#FDF4DF' }]}>
-                  <Ionicons name="star" size={16} color="#D9A74A" />
-                </View>
-                <Text style={styles.statNumber}>120</Text>
-                <Text style={styles.statLabel}>PUNTOS</Text>
-              </View>
-
-              <View style={styles.statCard}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#FBECE8' }]}>
-                  <Ionicons name="help-circle" size={16} color="#C86D51" />
-                </View>
-                <Text style={styles.statNumber}>7</Text>
-                <Text style={styles.statLabel}>QUIZZES</Text>
-              </View>
-
-              <View style={styles.statCard}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#EBF0EC' }]}>
-                  <Ionicons name="leaf" size={16} color="#355343" />
-                </View>
-                <Text style={styles.statNumber}>12</Text>
-                <Text style={styles.statLabel}>ESPECIES</Text>
-              </View>
-            </View>
-
-            {/* Sección Medallas */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Medallas</Text>
-              <Text style={styles.sectionSubtitle}>3 de 6 ganadas</Text>
-            </View>
-
-            {/* Grid de Medallas */}
-            <View style={styles.medalGrid}>
-              <View style={styles.medalGridItem}>
-                <View style={[styles.medalCircle, { backgroundColor: '#7E9362' }]}>
-                  <Ionicons name="star" size={28} color="#ffffff" />
-                </View>
-                <Text style={styles.medalGridLabel}>Explorador del Humedal</Text>
-              </View>
-
-              <View style={styles.medalGridItem}>
-                <View style={[styles.medalCircle, { backgroundColor: '#6289A3' }]}>
-                  <Ionicons name="star" size={28} color="#ffffff" />
-                </View>
-                <Text style={styles.medalGridLabel}>Protector del Agua</Text>
-              </View>
-
-              <View style={styles.medalGridItem}>
-                <View style={[styles.medalCircle, { backgroundColor: '#D9A74A' }]}>
-                  <Ionicons name="star" size={28} color="#ffffff" />
-                </View>
-                <Text style={styles.medalGridLabel}>Amigo de la fauna</Text>
-              </View>
-
-              {/* Medallas Bloqueadas */}
-              <View style={styles.medalGridItem}>
-                <View style={[styles.medalCircle, { backgroundColor: '#E2DEC9' }]}>
-                  <Ionicons name="lock-closed" size={24} color="#8E8A7E" />
-                </View>
-              </View>
-              <View style={styles.medalGridItem}>
-                <View style={[styles.medalCircle, { backgroundColor: '#E2DEC9' }]}>
-                  <Ionicons name="lock-closed" size={24} color="#8E8A7E" />
-                </View>
-              </View>
-              <View style={styles.medalGridItem}>
-                <View style={[styles.medalCircle, { backgroundColor: '#E2DEC9' }]}>
-                  <Ionicons name="lock-closed" size={24} color="#8E8A7E" />
-                </View>
-              </View>
-            </View>
-
-          </View>
-        </ScrollView>
+      <View style={[styles.container, styles.centro]}>
+        <ActivityIndicator size="large" color="#355343" />
       </View>
     );
   }
 
-  // ==========================================
-  // VISTA: PROFESOR (12b · Perfil profesor/a)
-  // ==========================================
+  if (error || !profile) {
+    return (
+      <View style={[styles.container, styles.centro]}>
+        <Text style={styles.estadoTexto}>{error ?? 'No se pudo cargar tu perfil.'}</Text>
+      </View>
+    );
+  }
+
+  const ganadasIds = new Set(profile.badges.map((b) => b.badge_id));
+  const puntosEnNivel = profile.total_points % POINTS_PER_LEVEL;
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
-        {/* Header Verde Superior Profesor */}
         <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
           <View style={styles.profileHeaderRow}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>M</Text>
+              <Text style={styles.avatarText}>{inicial(profile.full_name)}</Text>
+            </View>
+            <View style={styles.headerInfo}>
+              <Text style={styles.userName}>{profile.full_name}</Text>
+              <Text style={styles.userSubtitle}>Escuela Monteverde</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.mainContentWrapper}>
+          <View style={styles.levelCard}>
+            <View style={styles.levelRow}>
+              <View style={[styles.medalBadge, { backgroundColor: '#D9A74A' }]}>
+                <Ionicons name="star" size={24} color="#ffffff" />
+              </View>
+              <View style={styles.levelInfo}>
+                <Text style={styles.levelTag}>NIVEL {profile.level}</Text>
+                <Text style={styles.levelTitle}>Explorador del Humedal</Text>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: `${puntosEnNivel}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{puntosEnNivel} / {POINTS_PER_LEVEL} pts para subir</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#FDF4DF' }]}>
+                <Ionicons name="star" size={16} color="#D9A74A" />
+              </View>
+              <Text style={styles.statNumber}>{profile.total_points}</Text>
+              <Text style={styles.statLabel}>PUNTOS</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#FBECE8' }]}>
+                <Ionicons name="medal" size={16} color="#C86D51" />
+              </View>
+              <Text style={styles.statNumber}>{profile.badges.length}</Text>
+              <Text style={styles.statLabel}>MEDALLAS</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#EBF0EC' }]}>
+                <Ionicons name="leaf" size={16} color="#355343" />
+              </View>
+              <Text style={styles.statNumber}>{profile.level}</Text>
+              <Text style={styles.statLabel}>NIVEL</Text>
+            </View>
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Medallas</Text>
+            <Text style={styles.sectionSubtitle}>{profile.badges.length} de {todasMedallas.length} ganadas</Text>
+          </View>
+
+          <View style={styles.medalGrid}>
+            {todasMedallas.map((medalla, index) => {
+              const ganada = ganadasIds.has(medalla.id);
+              return (
+                <View key={medalla.id} style={styles.medalGridItem}>
+                  <View style={[styles.medalCircle, { backgroundColor: ganada ? COLORES_MEDALLA[index % COLORES_MEDALLA.length] : '#E2DEC9' }]}>
+                    <Ionicons name={ganada ? 'star' : 'lock-closed'} size={ganada ? 28 : 24} color={ganada ? '#ffffff' : '#8E8A7E'} />
+                  </View>
+                  {ganada ? <Text style={styles.medalGridLabel}>{medalla.name}</Text> : null}
+                </View>
+              );
+            })}
+          </View>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Ionicons name="log-out-outline" size={18} color="#C86D51" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function PerfilProfesor() {
+  const insets = useSafeAreaInsets();
+  const { session, profile, signOut } = useAuth();
+
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
+          <View style={styles.profileHeaderRow}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarText}>{inicial(profile?.full_name)}</Text>
             </View>
             <View style={styles.headerInfo}>
               <View style={styles.profTag}>
                 <Text style={styles.profTagText}>PROFESOR/A</Text>
               </View>
-              <Text style={styles.userName}>Profe Marcela Pérez 🌿</Text>
-              <Text style={styles.userSubtitle}>Profesora de Ciencias Naturales</Text>
+              <Text style={styles.userName}>{profile?.full_name ?? 'Profesor/a'}</Text>
+              <Text style={styles.userSubtitle}>Escuela Monteverde</Text>
             </View>
           </View>
         </View>
 
-        {/* Contenido con Margen Negativo */}
         <View style={styles.mainContentWrapper}>
-          
-          {/* Tarjeta de Datos de Institución */}
           <View style={styles.infoTableCard}>
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>ESCUELA</Text>
@@ -172,73 +202,14 @@ export default function PerfilScreen() {
             <View style={styles.tableDivider} />
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>CORREO</Text>
-              <Text style={styles.tableValue}>marcela@monteverde.cl</Text>
-            </View>
-            <View style={styles.tableDivider} />
-            <View style={styles.tableRow}>
-              <Text style={styles.tableLabel}>AÑOS ENSEÑANDO</Text>
-              <Text style={styles.tableValue}>8 años</Text>
+              <Text style={styles.tableValue}>{session?.user.email ?? '—'}</Text>
             </View>
           </View>
 
-          {/* Fila de 3 Estadísticas Profesor */}
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#EBF0EC' }]}>
-                <Ionicons name="people" size={16} color="#355343" />
-              </View>
-              <Text style={styles.statNumber}>78</Text>
-              <Text style={styles.statLabel}>ESTUDIANTES</Text>
-            </View>
-
-            <View style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#FBECE8' }]}>
-                <Ionicons name="document-text" size={16} color="#C86D51" />
-              </View>
-              <Text style={styles.statNumber}>12</Text>
-              <Text style={styles.statLabel}>RECURSOS</Text>
-            </View>
-
-            <View style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#FDF4DF' }]}>
-                <Ionicons name="help-circle" size={16} color="#D9A74A" />
-              </View>
-              <Text style={styles.statNumber}>3</Text>
-              <Text style={styles.statLabel}>CURSOS</Text>
-            </View>
-          </View>
-
-          {/* Sección Cursos Asignados */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Cursos asignados</Text>
-            <Text style={styles.sectionSubtitle}>78 estudiantes en total</Text>
-          </View>
-
-          {/* Listado de Cursos Asignados */}
-          <View style={styles.assignedCoursesContainer}>
-            <TouchableOpacity style={styles.courseRowCard}>
-              <View style={[styles.courseNumberBadge, { backgroundColor: '#EBF0EC', borderLeftWidth: 4, borderLeftColor: '#355343' }]}>
-                <Text style={[styles.courseNumberText, { color: '#355343' }]}>4°</Text>
-              </View>
-              <View style={styles.courseRowInfo}>
-                <Text style={styles.courseRowTitle}>4° Básico A</Text>
-                <Text style={styles.courseRowStudents}>28 estudiantes</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#8E8A7E" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.courseRowCard}>
-              <View style={[styles.courseNumberBadge, { backgroundColor: '#FBECE8', borderLeftWidth: 4, borderLeftColor: '#C86D51' }]}>
-                <Text style={[styles.courseNumberText, { color: '#C86D51' }]}>4°</Text>
-              </View>
-              <View style={styles.courseRowInfo}>
-                <Text style={styles.courseRowTitle}>4° Básico B</Text>
-                <Text style={styles.courseRowStudents}>26 estudiantes</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#8E8A7E" />
-            </TouchableOpacity>
-          </View>
-
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Ionicons name="log-out-outline" size={18} color="#C86D51" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -248,17 +219,27 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F6EE', // Fondo crema suave global
+    backgroundColor: '#F9F6EE',
+  },
+  centro: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  estadoTexto: {
+    fontSize: 15,
+    color: '#8E8A7E',
+    textAlign: 'center',
+    paddingHorizontal: 24,
   },
   scrollContent: {
     paddingBottom: 40,
   },
   headerBg: {
-    backgroundColor: '#2B4C3F', // Verde oscuro de la cabecera
+    backgroundColor: '#2B4C3F',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     paddingHorizontal: 24,
-    paddingBottom: 60, // Espacio para que floten las tarjetas encima
+    paddingBottom: 60,
   },
   profileHeaderRow: {
     flexDirection: 'row',
@@ -268,7 +249,7 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 24,
-    backgroundColor: '#D9A74A', // Color mostaza del avatar original
+    backgroundColor: '#D9A74A',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -307,9 +288,8 @@ const styles = StyleSheet.create({
   },
   mainContentWrapper: {
     paddingHorizontal: 24,
-    marginTop: -40, // Traslapa las tarjetas sobre el banner verde
+    marginTop: -40,
   },
-  // --- TARJETA DE NIVEL (ESTUDIANTE) ---
   levelCard: {
     backgroundColor: '#FFFDF9',
     borderRadius: 24,
@@ -370,7 +350,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontWeight: '600',
   },
-  // --- TARJETA DE TABLA (PROFESOR) ---
   infoTableCard: {
     backgroundColor: '#FFFDF9',
     borderRadius: 24,
@@ -403,7 +382,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#F2EFE6',
   },
-  // --- CONTENEDORES COMPARTIDOS DE ESTADÍSTICAS ---
   statsRow: {
     flexDirection: 'row',
     gap: 12,
@@ -442,7 +420,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     letterSpacing: 0.3,
   },
-  // --- ENCABEZADOS DE SECCIÓN ---
   sectionHeader: {
     marginTop: 24,
     marginBottom: 12,
@@ -457,7 +434,6 @@ const styles = StyleSheet.create({
     color: '#8E8A7E',
     marginTop: 2,
   },
-  // --- GRID MEDALLAS (ESTUDIANTE) ---
   medalGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -490,45 +466,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 13,
   },
-  // --- LISTA DE CURSOS (PROFESOR) ---
-  assignedCoursesContainer: {
-    gap: 12,
-  },
-  courseRowCard: {
+  logoutButton: {
+    marginTop: 28,
     backgroundColor: '#FFFDF9',
-    borderRadius: 20,
-    padding: 12,
+    borderRadius: 16,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-  },
-  courseNumberBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#ebdcc5',
   },
-  courseNumberText: {
-    fontSize: 14,
+  logoutText: {
+    color: '#C86D51',
     fontWeight: 'bold',
-  },
-  courseRowInfo: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  courseRowTitle: {
     fontSize: 15,
-    fontWeight: 'bold',
-    color: '#242424',
-  },
-  courseRowStudents: {
-    fontSize: 12,
-    color: '#8E8A7E',
-    marginTop: 1,
   },
 });
