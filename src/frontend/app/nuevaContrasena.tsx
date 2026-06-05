@@ -1,14 +1,25 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { supabase } from '@/lib/supabase/client';
+
 export default function NuevaContrasenaScreen() {
   const [email, setEmail] = useState('');
+  const [cargando, setCargando] = useState(false);
   const router = useRouter();
 
-  const handleSendLink = () => {
+  const handleSendLink = async () => {
     if (email.trim() === '') {
       Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+    setCargando(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    setCargando(false);
+    if (error) {
+      Alert.alert('Error', 'No pudimos enviar el enlace. Verifica tu correo e inténtalo de nuevo.');
       return;
     }
     Alert.alert('Éxito', 'Se ha enviado el enlace de recuperación a tu correo.');
@@ -25,7 +36,7 @@ export default function NuevaContrasenaScreen() {
         </TouchableOpacity>
 
         <View style={styles.iconContainer}>
-          <Text style={styles.dropIcon}>💧</Text> 
+          <Ionicons name="mail-outline" size={28} color="#355343" />
         </View>
 
         {/* Títulos */}
@@ -53,8 +64,8 @@ export default function NuevaContrasenaScreen() {
 
       <View style={styles.bottomSection}>
         {/* Botón Enviar Enlace */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSendLink}>
-          <Text style={styles.submitButtonText}>Enviar enlace</Text>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSendLink} disabled={cargando}>
+          <Text style={styles.submitButtonText}>{cargando ? 'Enviando…' : 'Enviar enlace'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -104,9 +115,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 25,
   },
-  dropIcon: {
-    fontSize: 26,
-  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -122,10 +130,7 @@ const styles = StyleSheet.create({
   },
   formSection: {
     width: '100%',
-    flex: 1,
-    justifyContent: 'flex-start',
-    marginTop: -350,
-    maxHeight: 120,
+    marginTop: 30,
   },
   inputGroup: {
     width: '100%',
