@@ -15,6 +15,7 @@ El proyecto busca conectar a estudiantes de educación básica y sus familias co
 - [Instrucciones de uso](#instrucciones-de-uso)
 - [Documentación](#documentación)
 - [Roles del equipo](#roles-del-equipo)
+- [Distribución del trabajo](#distribución-del-trabajo)
 
 ## Descripción
 
@@ -148,3 +149,49 @@ El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determ
 | Felipe Delgado | Backend — Supabase & API | Base de datos, autenticación, RLS, Storage, triggers y documentación técnica |
 | Diego Aido | Frontend — React Native / Expo | Pantallas, navegación, componentes visuales, diseño y experiencia de usuario |
 | Diego Jerez | Integración — SDK & QA | Conexión con Supabase, hooks, servicios, pruebas e integración general |
+
+
+## Distribución del trabajo
+
+La organización del desarrollo se realizó considerando el rol de cada integrante, el historial de implementación del proyecto y la reutilización de componentes ya desarrollados.
+
+El objetivo es mantener una distribución coherente con las responsabilidades técnicas de cada área, evitando duplicar trabajo ya implementado y concentrando las tareas restantes en la integración de funcionalidades pendientes.
+
+### Casos de uso y responsables
+
+| Caso de uso                              | Responsable principal | Apoyo          |
+| ---------------------------------------- | --------------------- | -------------- |
+| Autenticación con roles                  | Felipe Delgado        | -              |
+| Catálogo de flora y fauna                | Felipe Delgado        | Diego Jerez    |
+| Quizzes interactivos                     | Felipe Delgado        | Diego Jerez    |
+| Gestión de quizzes del profesor          | Felipe Delgado        | Diego Aido     |
+| Perfil y gamificación                    | Felipe Delgado        | Diego Jerez    |
+| Aula virtual                             | Diego Jerez           | Felipe Delgado |
+| Calendario comunitario                   | Diego Jerez           | Diego Aido     |
+| Módulo "Sabías que..." y Cultura Mapuche | Diego Aido            | Diego Jerez    |
+| Gestión de estudiantes                   | Diego Aido            | Felipe Delgado |
+| Integración final y pruebas              | Diego Jerez           | Todo el equipo |
+
+### Distribución de tareas restantes
+
+La mayor parte de la arquitectura del proyecto, la integración con Supabase y la lógica de negocio ya se encuentran implementadas.
+
+Las actividades pendientes corresponden principalmente a integración de interfaces, conexión de pantallas existentes y validación funcional.
+
+| Integrante     | Trabajo restante                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------- |
+| Felipe Delgado | Soporte técnico, revisión de integración, ajustes menores de backend y apoyo en incidencias     |
+| Diego Aido     | Implementación de pantallas pendientes y consumo de APIs existentes                             |
+| Diego Jerez    | Integración de módulos, eliminación de datos mock, pruebas funcionales y validación de permisos |
+
+### Participación estimada del desarrollo
+
+La siguiente distribución considera tanto el trabajo ya implementado como las tareas pendientes hasta el cierre del MVP.
+
+| Integrante     | Participación estimada |
+| -------------- | ---------------------: |
+| Felipe Delgado |                   45 % |
+| Diego Aido     |                   30 % |
+| Diego Jerez    |                   25 % |
+
+La mayor participación corresponde al desarrollo de la arquitectura base del proyecto, diseño del modelo de datos, implementación de migraciones, autenticación, políticas de seguridad (RLS), triggers, APIs de negocio e integración principal con Supabase, componentes que sustentan el funcionamiento del resto de los módulos de la aplicación.
