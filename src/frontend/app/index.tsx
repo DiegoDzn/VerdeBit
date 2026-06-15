@@ -28,11 +28,11 @@ export default function WelcomeScreen() {
             <Text style={styles.logoLeaf}>🍃</Text>
           </View>
 
-          <Text style={styles.schoolTitle}>Escuela{"\n"}Reducción Monte Verde</Text>
+          <Text style={styles.schoolTitle}>Escuela{"\n"}Monteverde</Text>
           <Text style={styles.schoolSubtitle}>
             Aprende, explora y cuida el Humedal Vegas de Chivilcán
           </Text>
-          <Text style={styles.locationTag}>Temuco · Karü Mawida</Text>
+          <Text style={styles.locationTag}>TEMUCO · WALLMAPU</Text>
         </View>
 
         {/* Contenedor Inferior: Botón de ingreso */}

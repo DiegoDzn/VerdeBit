@@ -12,7 +12,7 @@ const EVENTOS_MOCK = [
     diaSemana: 'VIE',
     titulo: 'Recorrido por el humedal',
     hora: '10:00 HRS',
-    lugar: 'Escuela Reducción Monte Verde • Karü Mawida ',
+    lugar: 'ESCUELA MONTEVERDE',
     descripcion: 'Salida educativa para observar aves y plantas con guías Mapuche.',
     colorHeader: '#355343'
   },

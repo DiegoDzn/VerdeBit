@@ -1,6 +1,6 @@
-# VerdeBit - Escuela Reducción Monte Verde
+# VerdeBit - Escuela Monteverde
 
-Aplicación móvil MVP desarrollada para la Escuela Reducción Monte Verde, orientada a visibilizar y poner en valor los servicios ecosistémicos del Humedal Vegas de Chivilcán.
+Aplicación móvil MVP desarrollada para la Escuela Monteverde, orientada a visibilizar y poner en valor los servicios ecosistémicos del Humedal Vegas de Chivilcán.
 
 El proyecto busca conectar a estudiantes de educación básica y sus familias con el ecosistema local mediante recursos educativos digitales, contenido ambiental y elementos de cultura Mapuche.
 
@@ -20,7 +20,7 @@ El proyecto busca conectar a estudiantes de educación básica y sus familias co
 
 VerdeBit es una aplicación móvil educativa enfocada en el Humedal Vegas de Chivilcán.
 
-El sistema permite que estudiantes, profesores y familias accedan a información sobre flora, fauna, actividades comunitarias, recursos educativos y quizzes interactivos. El objetivo es fortalecer la educación ambiental y el sentido de pertenencia con el entorno natural de la Escuela Reducción Monte Verde.
+El sistema permite que estudiantes, profesores y familias accedan a información sobre flora, fauna, actividades comunitarias, recursos educativos y quizzes interactivos. El objetivo es fortalecer la educación ambiental y el sentido de pertenencia con el entorno natural de la Escuela Monteverde.
 
 Este proyecto corresponde a un MVP universitario, por lo que está orientado a una entrega funcional demostrable, sin publicación en tiendas de aplicaciones en esta etapa.
 

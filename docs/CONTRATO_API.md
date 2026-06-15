@@ -1,6 +1,6 @@
 # Contrato API
 
-Este documento define como se conectara la app movil de Escuela Reducción Monte Verde con Supabase. La app no tendra un backend propio por ahora, usara los endpoints que Supabase entrega para autenticacion y para consultar las tablas creadas en las migraciones SQL del proyecto
+Este documento define como se conectara la app movil de Escuela Monteverde con Supabase. La app no tendra un backend propio por ahora, usara los endpoints que Supabase entrega para autenticacion y para consultar las tablas creadas en las migraciones SQL del proyecto
 
 ## Base de la API
 
