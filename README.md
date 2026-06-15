@@ -1,6 +1,6 @@
-# VerdeBit - Escuela Monteverde
+# VerdeBit - Escuela Reducción Monte Verde
 
-Aplicación móvil MVP desarrollada para la Escuela Monteverde, orientada a visibilizar y poner en valor los servicios ecosistémicos del Humedal Vegas de Chivilcán.
+Aplicación móvil MVP desarrollada para la Escuela Reducción Monte Verde, orientada a visibilizar y poner en valor los servicios ecosistémicos del Humedal Vegas de Chivilcán.
 
 El proyecto busca conectar a estudiantes de educación básica y sus familias con el ecosistema local mediante recursos educativos digitales, contenido ambiental y elementos de cultura Mapuche.
 
@@ -15,12 +15,13 @@ El proyecto busca conectar a estudiantes de educación básica y sus familias co
 - [Instrucciones de uso](#instrucciones-de-uso)
 - [Documentación](#documentación)
 - [Roles del equipo](#roles-del-equipo)
+- [Distribución del trabajo](#distribución-del-trabajo)
 
 ## Descripción
 
 VerdeBit es una aplicación móvil educativa enfocada en el Humedal Vegas de Chivilcán.
 
-El sistema permite que estudiantes, profesores y familias accedan a información sobre flora, fauna, actividades comunitarias, recursos educativos y quizzes interactivos. El objetivo es fortalecer la educación ambiental y el sentido de pertenencia con el entorno natural de la Escuela Monteverde.
+El sistema permite que estudiantes, profesores y familias accedan a información sobre flora, fauna, actividades comunitarias, recursos educativos y quizzes interactivos. El objetivo es fortalecer la educación ambiental y el sentido de pertenencia con el entorno natural de la Escuela Reducción Monte Verde.
 
 Este proyecto corresponde a un MVP universitario, por lo que está orientado a una entrega funcional demostrable, sin publicación en tiendas de aplicaciones en esta etapa.
 
@@ -152,7 +153,26 @@ El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determ
 
 ## Distribución del trabajo
 
-### Prioridad alta 
+La organización del desarrollo se realizó considerando el rol de cada integrante, el historial de implementación del proyecto y la reutilización de componentes ya desarrollados.
+
+El objetivo es mantener una distribución coherente con las responsabilidades técnicas de cada área, evitando duplicar trabajo ya implementado y concentrando las tareas restantes en la integración de funcionalidades pendientes.
+
+### Casos de uso y responsables
+
+| Caso de uso                              | Responsable principal | Apoyo          |
+| ---------------------------------------- | --------------------- | -------------- |
+| Autenticación con roles                  | Felipe Delgado        | -              |
+| Catálogo de flora y fauna                | Felipe Delgado        | Diego Jerez    |
+| Quizzes interactivos                     | Felipe Delgado        | Diego Jerez    |
+| Gestión de quizzes del profesor          | Felipe Delgado        | Diego Aido     |
+| Perfil y gamificación                    | Felipe Delgado        | Diego Jerez    |
+| Aula virtual                             | Diego Jerez           | Felipe Delgado |
+| Calendario comunitario                   | Diego Jerez           | Diego Aido     |
+| Módulo "Sabías que..." y Cultura Mapuche | Diego Aido            | Diego Jerez    |
+| Gestión de estudiantes                   | Diego Aido            | Felipe Delgado |
+| Integración final y pruebas              | Diego Jerez           | Todo el equipo |
+
+### Tareas pendientes — Prioridad alta
 
 | # | Tarea | Responsable | Estimación |
 |---|---|---|---|
@@ -161,11 +181,11 @@ El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determ
 | 3 | Crear pantalla **"Sabías que / Mapuche"** usando `contenido/api.ts` | Diego Aido | 1.5 días |
 | 4a | **Edge Function** `gestionar-estudiantes` (crear/eliminar, validando rol teacher) | Felipe | 1.5 días |
 | 4b | Policy RLS: `teacher` puede leer perfiles de estudiantes; `enable_signup = false` | Felipe | 0.5 día |
-| 4c | Pantalla profesor: **lista de estudiantes + crear + eliminar ** | Diego Aido | 2 días |
+| 4c | Pantalla profesor: **lista de estudiantes + crear + eliminar** | Diego Aido | 2 días |
 | 4d | `lib/estudiantes/api.ts` que invoca la Edge Function (`functions.invoke`) | Diego Jerez | 0.5 día |
 | 5 | **Anti-farmeo de puntos**: premiar solo el primer intento por quiz (o tope), en el trigger | Felipe | 0.5 día |
 
-### Prioridad media
+### Tareas pendientes — Prioridad media
 
 | # | Tarea | Responsable | Estimación |
 |---|---|---|---|
@@ -180,3 +200,15 @@ El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determ
 - **Diego Jerez (Integración/QA):** tareas 1, 2, 4d, 8, 9 → ~**4 días**.
 - **Diego Aido (Frontend):** tareas 3, 4c → ~**3.5 días**.
 - **Felipe (Backend):** tareas 4a, 4b, 5, 6, 7, 10 → ~**4 días**.
+
+### Participación estimada del desarrollo
+
+La siguiente distribución considera tanto el trabajo ya implementado como las tareas pendientes hasta el cierre del MVP.
+
+| Integrante     | Participación estimada |
+| -------------- | ---------------------: |
+| Felipe Delgado |                   45 % |
+| Diego Aido     |                   30 % |
+| Diego Jerez    |                   25 % |
+
+La mayor participación corresponde al desarrollo de la arquitectura base del proyecto, diseño del modelo de datos, implementación de migraciones, autenticación, políticas de seguridad (RLS), triggers, APIs de negocio e integración principal con Supabase, componentes que sustentan el funcionamiento del resto de los módulos de la aplicación.
