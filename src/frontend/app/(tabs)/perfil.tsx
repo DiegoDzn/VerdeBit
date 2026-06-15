@@ -94,7 +94,7 @@ function PerfilEstudiante() {
             </View>
             <View style={styles.headerInfo}>
               <Text style={styles.userName}>{profile.full_name}</Text>
-              <Text style={styles.userSubtitle}>Escuela Monteverde</Text>
+              <Text style={styles.userSubtitle}>Escuela Reducción Monte Verde</Text>
             </View>
           </View>
         </View>
@@ -188,7 +188,7 @@ function PerfilProfesor() {
                 <Text style={styles.profTagText}>PROFESOR/A</Text>
               </View>
               <Text style={styles.userName}>{profile?.full_name ?? 'Profesor/a'}</Text>
-              <Text style={styles.userSubtitle}>Escuela Monteverde</Text>
+              <Text style={styles.userSubtitle}>Escuela Reducción Monte Verde</Text>
             </View>
           </View>
         </View>
@@ -197,7 +197,7 @@ function PerfilProfesor() {
           <View style={styles.infoTableCard}>
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>ESCUELA</Text>
-              <Text style={styles.tableValue}>Escuela Monteverde • Temuco</Text>
+              <Text style={styles.tableValue}>Escuela Reducción Monte Verde</Text>
             </View>
             <View style={styles.tableDivider} />
             <View style={styles.tableRow}>
