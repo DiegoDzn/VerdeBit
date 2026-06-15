@@ -140,6 +140,7 @@ El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determ
 ## Documentación
 
 - [Contrato API](docs/CONTRATO_API.md)
+- [Estado del proyecto y plan de cierre](docs/ESTADO_PROYECTO.md)
 
 ## Roles del equipo
 
@@ -148,3 +149,34 @@ El ingreso es por correo y contraseña; el rol (estudiante o profesor) se determ
 | Felipe Delgado | Backend — Supabase & API | Base de datos, autenticación, RLS, Storage, triggers y documentación técnica |
 | Diego Aido | Frontend — React Native / Expo | Pantallas, navegación, componentes visuales, diseño y experiencia de usuario |
 | Diego Jerez | Integración — SDK & QA | Conexión con Supabase, hooks, servicios, pruebas e integración general |
+
+## Distribución del trabajo
+
+### Prioridad alta 
+
+| # | Tarea | Responsable | Estimación |
+|---|---|---|---|
+| 1 | Conectar **Aula** a `recursos/api.ts` (quitar mock + wirear FAB → create) | Diego Jerez | 1 día |
+| 2 | Conectar **Eventos** a `calendario/api.ts` (quitar mock, formatear fechas) | Diego Jerez | 0.5 día |
+| 3 | Crear pantalla **"Sabías que / Mapuche"** usando `contenido/api.ts` | Diego Aido | 1.5 días |
+| 4a | **Edge Function** `gestionar-estudiantes` (crear/eliminar, validando rol teacher) | Felipe | 1.5 días |
+| 4b | Policy RLS: `teacher` puede leer perfiles de estudiantes; `enable_signup = false` | Felipe | 0.5 día |
+| 4c | Pantalla profesor: **lista de estudiantes + crear + eliminar ** | Diego Aido | 2 días |
+| 4d | `lib/estudiantes/api.ts` que invoca la Edge Function (`functions.invoke`) | Diego Jerez | 0.5 día |
+| 5 | **Anti-farmeo de puntos**: premiar solo el primer intento por quiz (o tope), en el trigger | Felipe | 0.5 día |
+
+### Prioridad media
+
+| # | Tarea | Responsable | Estimación |
+|---|---|---|---|
+| 6 | Atar puntos al `score` | Felipe | 0.5 día |
+| 7 | Corregir `getQuizStats`| Felipe | 0.5 día |
+| 8 | Manejar errores visibles en el flujo de quiz | Diego Jerez | 0.5 día |
+| 9 | **QA / pruebas manuales** de los casos de uso + permisos RLS por rol | Diego Jerez | 1.5 días |
+| 10 | Seeds de demo: `events`, `educational_resources`, `did_you_know`, `mapuche_content` | Felipe | 0.5 día |
+
+### Carga estimada por persona
+
+- **Diego Jerez (Integración/QA):** tareas 1, 2, 4d, 8, 9 → ~**4 días**.
+- **Diego Aido (Frontend):** tareas 3, 4c → ~**3.5 días**.
+- **Felipe (Backend):** tareas 4a, 4b, 5, 6, 7, 10 → ~**4 días**.
