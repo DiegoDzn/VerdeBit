@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getUpcomingEvents, type Event } from '@/lib/supabase/events';
+import { listUpcomingEvents } from '@/lib/calendario/api';
+import type { Event } from '@/lib/types';
 
 // Constantes para formato de fechas y colores
 const MESES_ABREV = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
@@ -46,7 +47,7 @@ export default function EventosScreen() {
   const cargarEventos = async () => {
     try {
       setLoading(true);
-      const data = await getUpcomingEvents();
+      const data = await listUpcomingEvents();
       setEventos(data);
     } catch (error) {
       console.error('Error al cargar eventos:', error);

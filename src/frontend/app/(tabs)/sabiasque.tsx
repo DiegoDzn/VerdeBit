@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getDidYouKnowData, type DidYouKnow } from '@/lib/supabase/did-you-know';
+import { listDidYouKnow } from '@/lib/contenido/api';
+import type { DidYouKnow } from '@/lib/types';
 
 const COLORES_PALETA = ['#dfae4b', '#c96f43', '#7b9c53', '#3e6b52', '#9e3d3d'];
 const ICONOS_PALETA = ['leaf-outline', 'water-outline', 'star-outline', 'leaf-outline', 'sunny-outline'];
@@ -22,7 +23,7 @@ export default function SabiasQueScreen() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const data = await getDidYouKnowData();
+      const data = await listDidYouKnow();
       setDatos(data);
     } catch (error) {
       console.error('Error al cargar datos de Supabase:', error);
