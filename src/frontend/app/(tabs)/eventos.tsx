@@ -1,43 +1,65 @@
-import { Ionicons } from '@expo/vector-icons'; // Importamos los iconos
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const EVENTOS_MOCK = [
-  {
-    id: '1',
-    mes: 'MAY',
-    dia: '22',
-    diaSemana: 'VIE',
-    titulo: 'Recorrido por el humedal',
-    hora: '10:00 HRS',
-    lugar: 'Escuela Reducción Monte Verde • Karü Mawida ',
-    descripcion: 'Salida educativa para observar aves y plantas con guías Mapuche.',
-    colorHeader: '#355343'
-  },
-  {
-    id: '2',
-    mes: 'MAY',
-    dia: '28',
-    diaSemana: 'JUE',
-    titulo: 'Taller "Cuida tu humedal"',
-    hora: '15:30 HRS',
-    lugar: 'CENTRO CULTURAL',
-    descripcion: 'Aprende técnicas básicas de conservación y reconocimiento del ecosistema local.',
-    colorHeader: '#75875c'
-  }
-];
+import { getUpcomingEvents, type Event } from '@/lib/supabase/events';
+
+// Constantes para formato de fechas y colores
+const MESES_ABREV = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+const DIAS_SEMANA_ABREV = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SÁB'];
+const COLORES_EVENTOS = ['#355343', '#75875c', '#c96f43', '#3e6b52', '#9e3d3d', '#dfae4b'];
+
+/**
+ * Convierte un timestamp ISO a objeto con fecha formateada
+ */
+function formatearFecha(isoString: string) {
+  const date = new Date(isoString);
+  const mes = MESES_ABREV[date.getMonth()];
+  const dia = String(date.getDate()).padStart(2, '0');
+  const diaSemana = DIAS_SEMANA_ABREV[date.getDay()];
+  const horas = String(date.getHours()).padStart(2, '0');
+  const minutos = String(date.getMinutes()).padStart(2, '0');
+  const hora = `${horas}:${minutos} HRS`;
+
+  return { mes, dia, diaSemana, hora };
+}
+
+/**
+ * Genera un color consistente basado en el índice del evento
+ */
+function obtenerColorEvento(index: number): string {
+  return COLORES_EVENTOS[index % COLORES_EVENTOS.length];
+}
 
 export default function EventosScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [eventos, setEventos] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    cargarEventos();
+  }, []);
+
+  const cargarEventos = async () => {
+    try {
+      setLoading(true);
+      const data = await getUpcomingEvents();
+      setEventos(data);
+    } catch (error) {
+      console.error('Error al cargar eventos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
-      
-      {/* BARRA SUPERIOR MODIFICADA */}
+
+      {/* BARRA SUPERIOR */}
       <View style={styles.headerNav}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButtonSquare}>
           <Ionicons name="chevron-back" size={20} color="#242424" />
@@ -46,36 +68,47 @@ export default function EventosScreen() {
 
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Próximos eventos</Text>
-        <Text style={styles.sectionSubtitle}>{EVENTOS_MOCK.length} actividades</Text>
+        <Text style={styles.sectionSubtitle}>{eventos.length} actividades</Text>
 
-        <FlatList
-          data={EVENTOS_MOCK}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <View style={styles.cardEvent}>
-              <View style={styles.calendarBadge}>
-                <View style={[styles.calendarHeader, { backgroundColor: item.colorHeader }]} />
-                <View style={styles.calendarBody}>
-                  <Text style={styles.calendarMonth}>{item.mes}</Text>
-                  <Text style={styles.calendarDayNum}>{item.dia}</Text>
-                  <Text style={styles.calendarDayName}>{item.diaSemana}</Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#3e6b52" />
+          </View>
+        ) : (
+          <FlatList
+            data={eventos}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item, index }) => {
+              const { mes, dia, diaSemana, hora } = formatearFecha(item.starts_at);
+              const colorHeader = obtenerColorEvento(index);
+
+              return (
+                <View style={styles.cardEvent}>
+                  <View style={styles.calendarBadge}>
+                    <View style={[styles.calendarHeader, { backgroundColor: colorHeader }]} />
+                    <View style={styles.calendarBody}>
+                      <Text style={styles.calendarMonth}>{mes}</Text>
+                      <Text style={styles.calendarDayNum}>{dia}</Text>
+                      <Text style={styles.calendarDayName}>{diaSemana}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.eventInfoContainer}>
+                    <Text style={styles.eventTitle}>{item.title}</Text>
+                    <Text style={styles.eventMeta}>
+                      {hora} · <Text style={styles.eventLocation}>{item.location}</Text>
+                    </Text>
+                    <Text style={styles.eventDescription} numberOfLines={2}>
+                      {item.description}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-
-              <View style={styles.eventInfoContainer}>
-                <Text style={styles.eventTitle}>{item.titulo}</Text>
-                <Text style={styles.eventMeta}>
-                  {item.hora} · <Text style={styles.eventLocation}>{item.lugar}</Text>
-                </Text>
-                <Text style={styles.eventDescription} numberOfLines={2}>
-                  {item.descripcion}
-                </Text>
-              </View>
-            </View>
-          )}
-        />
+              );
+            }}
+          />
+        )}
       </View>
     </View>
   );
@@ -84,9 +117,8 @@ export default function EventosScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbf4e6', 
+    backgroundColor: '#fbf4e6',
   },
-  // --- NUEVO ESTILO DEL BOTÓN DE VOLVER ---
   headerNav: {
     paddingHorizontal: 24,
     paddingTop: 16,
@@ -96,10 +128,9 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     backgroundColor: '#ffffff',
-    borderRadius: 16, // Bordes bien redondeados como la foto
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    // Sombras ligeras para darle volumen
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
@@ -121,6 +152,11 @@ const styles = StyleSheet.create({
     color: '#7e7568',
     marginTop: 2,
     marginBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
     gap: 16,

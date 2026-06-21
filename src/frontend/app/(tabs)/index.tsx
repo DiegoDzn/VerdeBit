@@ -89,7 +89,7 @@ export default function InicioScreen() {
             <Text style={styles.dataText}>
               ¿Sabías que los humedales filtran el agua de forma natural, como un gran riñón verde?
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/sabiasque')}>
               <Text style={styles.viewMore}>Ver más datos ›</Text>
             </TouchableOpacity>
           </View>
@@ -98,7 +98,7 @@ export default function InicioScreen() {
  
           <View style={styles.eventHeaderRow}>
             <Text style={styles.sectionTitle}>Próximo evento</Text>
-            <TouchableOpacity onPress={() => router.push('/eventos')}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/eventos')}>
               <Text style={styles.viewAllEvents}>Ver todos →</Text>
             </TouchableOpacity>
           </View>

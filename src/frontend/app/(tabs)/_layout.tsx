@@ -15,9 +15,7 @@ export default function TabLayout() {
 
   const tabBarHeight = Platform.OS === 'ios' ? 75 + insets.bottom : 80 + insets.bottom;
 
-  // 💡 CORRECCIÓN: Comprobamos el nombre de la ruta de forma exacta
   const isTabActive = (routeName: string) => {
-    // Extraemos el último segmento de la ruta actual (ej: de "/aulaverde" obtenemos "aulaverde")
     const currentTab = pathname.split('/').pop();
 
     if (routeName === 'index') {
@@ -105,6 +103,12 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="eventos"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="sabiasque"
         options={{
           href: null,
         }}
