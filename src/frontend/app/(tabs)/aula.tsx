@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   ScrollView,
   StyleSheet,
@@ -11,61 +13,99 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth/AuthContext';
+import { listResources } from '@/lib/recursos/api';
+import type { EducationalResource } from '@/lib/types';
 
-// --- DATA MOCK ---
-interface Recurso {
-  id: string;
-  tipo: 'PDF' | 'ENLACE' | 'IMAGEN';
-  titulo: string;
-  autor: string;
-  hace: string;
-}
+const CATEGORIAS = ['Todos', 'PDF', 'Enlace', 'Video', 'Imagen', 'Texto'];
 
-const DATOS_RECURSOS: Recurso[] = [
-  { id: '1', tipo: 'PDF', titulo: 'Guía de aves del humedal Vegas de Chivilcán', autor: 'Prof. Marcela Pérez', hace: 'Hace 2 días' },
-  { id: '2', tipo: 'ENLACE', titulo: '¿Cómo se forma un humedal?', autor: 'Prof. Diego Salgado', hace: 'Hace 4 días' },
-  { id: '3', tipo: 'IMAGEN', titulo: 'Fotos de la última salida a terreno', autor: 'Prof. Camila Huenchupán', hace: 'Hace 1 semana' },
-  { id: '4', tipo: 'PDF', titulo: 'Cuaderno de campo para imprimir', autor: 'Prof. Marcela Pérez', hace: 'Hace 1 semana' },
-];
-
-const CATEGORIAS = ['Todos', 'PDF', 'Imagen', 'Enlace'];
+const TYPE_MAP: Record<string, string> = {
+  'pdf': 'PDF',
+  'link': 'Enlace',
+  'video': 'Video',
+  'image': 'Imagen',
+  'text': 'Texto',
+};
 
 export default function AulaScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todos');
+  const [recursos, setRecursos] = useState<EducationalResource[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { role } = useAuth();
   const esProfesor = role === 'teacher';
 
+  useEffect(() => {
+    let activo = true;
+    setCargando(true);
+    setError(null);
+    listResources()
+      .then((data) => {
+        if (activo) setRecursos(data);
+      })
+      .catch((e) => {
+        if (activo) setError(e instanceof Error ? e.message : 'No se pudo cargar los recursos.');
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, []);
+
   // Filtrado por categoría
-  const datosFiltrados = DATOS_RECURSOS.filter((item) => {
-    if (categoriaSeleccionada === 'Todos') return true;
-    return item.tipo.toLowerCase() === categoriaSeleccionada.toLowerCase();
-  });
+  const datosFiltrados = useMemo(() => {
+    if (categoriaSeleccionada === 'Todos') return recursos;
+    const categoria = Object.keys(TYPE_MAP).find(
+      (key) => TYPE_MAP[key] === categoriaSeleccionada
+    );
+    return recursos.filter((item) => item.resource_type === categoria);
+  }, [recursos, categoriaSeleccionada]);
 
   // Configuración visual por tipo de recurso
-  const getTipoConfig = (tipo: 'PDF' | 'ENLACE' | 'IMAGEN') => {
+  const getTipoConfig = (tipo: string) => {
     switch (tipo) {
-      case 'PDF':
+      case 'pdf':
         return { icon: 'document-text' as const, bgColor: '#C86D51', textColor: '#C86D51' };
-      case 'ENLACE':
+      case 'link':
         return { icon: 'link' as const, bgColor: '#3E5C4E', textColor: '#3E5C4E' };
-      case 'IMAGEN':
+      case 'image':
         return { icon: 'image' as const, bgColor: '#7B8E55', textColor: '#7B8E55' };
+      case 'video':
+        return { icon: 'videocam' as const, bgColor: '#A0522D', textColor: '#A0522D' };
+      case 'text':
+        return { icon: 'reader' as const, bgColor: '#556B72', textColor: '#556B72' };
+      default:
+        return { icon: 'document' as const, bgColor: '#999', textColor: '#999' };
     }
   };
 
-  const renderItem = ({ item }: { item: Recurso }) => {
-    const config = getTipoConfig(item.tipo);
+  const renderItem = ({ item }: { item: EducationalResource }) => {
+    const config = getTipoConfig(item.resource_type);
+    const fecha = new Date(item.created_at);
+    const hoy = new Date();
+    const diffTime = Math.abs(hoy.getTime() - fecha.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    let tiempoText = 'Hace poco';
+    if (diffDays === 0) tiempoText = 'Hoy';
+    else if (diffDays === 1) tiempoText = 'Hace 1 día';
+    else if (diffDays < 7) tiempoText = `Hace ${diffDays} días`;
+    else if (diffDays < 30) tiempoText = `Hace ${Math.floor(diffDays / 7)} semana${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
+    else tiempoText = `Hace ${Math.floor(diffDays / 30)} mes${Math.floor(diffDays / 30) > 1 ? 'es' : ''}`;
+
     return (
       <TouchableOpacity style={styles.card} activeOpacity={0.7}>
         <View style={[styles.iconContainer, { backgroundColor: config.bgColor }]}>
           <Ionicons name={config.icon} size={24} color="#FFFFFF" />
         </View>
         <View style={styles.infoContainer}>
-          <Text style={[styles.tipoText, { color: config.textColor }]}>{item.tipo}</Text>
-          <Text style={styles.tituloText} numberOfLines={2}>{item.titulo}</Text>
-          <Text style={styles.autorText}>{item.autor} • {item.hace}</Text>
+          <Text style={[styles.tipoText, { color: config.textColor }]}>{TYPE_MAP[item.resource_type]}</Text>
+          <Text style={styles.tituloText} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.autorText}>{item.subject_area || 'General'} • {tiempoText}</Text>
         </View>
         <View style={styles.arrowContainer}>
           <Ionicons name="chevron-forward" size={20} color="#666666" />
@@ -76,57 +116,75 @@ export default function AulaScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 15 }]}>
-      {/* Lista Principal */}
-      <FlatList
-        data={datosFiltrados}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={[styles.listContainer, { paddingBottom: esProfesor ? 120 : 30 }]}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
-            {/* Encabezado */}
-            <View style={styles.headerSection}>
-              <Text style={styles.mainTitle}>Aula Virtual</Text>
-              <Text style={styles.subtitle}>Recursos de tus profesores</Text>
-            </View>
+      {cargando ? (
+        <View style={styles.estadoVacio}>
+          <ActivityIndicator size="large" color="#355343" />
+        </View>
+      ) : error ? (
+        <View style={styles.estadoVacio}>
+          <Text style={styles.estadoTexto}>{error}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={datosFiltrados}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={[styles.listContainer, { paddingBottom: esProfesor ? 120 : 30 }]}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              {/* Encabezado */}
+              <View style={styles.headerSection}>
+                <Text style={styles.mainTitle}>Aula Virtual</Text>
+                <Text style={styles.subtitle}>Recursos de tus profesores</Text>
+              </View>
 
-            {/* Selector de Categorías */}
-            <View style={styles.categoriesWrapper}>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
-                contentContainerStyle={styles.categoriesContainer}
-              >
-                {CATEGORIAS.map((cat) => {
-                  const isActive = categoriaSeleccionada === cat;
-                  return (
-                    <TouchableOpacity
-                      key={cat}
-                      onPress={() => setCategoriaSeleccionada(cat)}
-                      style={[
-                        styles.categoryButton,
-                        isActive ? styles.categoryButtonActive : styles.categoryButtonInactive
-                      ]}
-                    >
-                      <Text style={[
-                        styles.categoryText,
-                        isActive ? styles.categoryTextActive : styles.categoryTextInactive
-                      ]}>
-                        {cat}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+              {/* Selector de Categorías */}
+              <View style={styles.categoriesWrapper}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false} 
+                  contentContainerStyle={styles.categoriesContainer}
+                >
+                  {CATEGORIAS.map((cat) => {
+                    const isActive = categoriaSeleccionada === cat;
+                    return (
+                      <TouchableOpacity
+                        key={cat}
+                        onPress={() => setCategoriaSeleccionada(cat)}
+                        style={[
+                          styles.categoryButton,
+                          isActive ? styles.categoryButtonActive : styles.categoryButtonInactive
+                        ]}
+                      >
+                        <Text style={[
+                          styles.categoryText,
+                          isActive ? styles.categoryTextActive : styles.categoryTextInactive
+                        ]}>
+                          {cat}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            </>
+          }
+          ListEmptyComponent={
+            <View style={styles.estadoVacio}>
+              <Text style={styles.estadoTexto}>No hay recursos disponibles.</Text>
             </View>
-          </>
-        }
-      />
+          }
+        />
+      )}
 
-      {/* --- BOTÓN FLOTANTE SUBIR ARCHIVO (Solo Profesor) --- */}
+      {/* --- BOTÓN FLOTANTE CREAR RECURSO (Solo Profesor) --- */}
       {esProfesor && (
-        <TouchableOpacity style={[styles.fabButton, { bottom: insets.bottom + 20 }]} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={[styles.fabButton, { bottom: insets.bottom + 20 }]} 
+          activeOpacity={0.8}
+          onPress={() => router.push('/professor/resource/create')}
+        >
           <Ionicons name="add" size={24} color="#ffffff" />
           <Text style={styles.fabText}>Subir archivo</Text>
         </TouchableOpacity>
@@ -238,6 +296,17 @@ const styles = StyleSheet.create({
   arrowContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  estadoVacio: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  estadoTexto: {
+    fontSize: 15,
+    color: '#7e7568',
+    textAlign: 'center',
   },
   // --- FAB REUTILIZADO ---
   fabButton: {
