@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -131,12 +132,25 @@ export default function CatalogoScreen() {
           renderItem={({ item, index }) => (
             <View style={styles.card}>
               <View style={[styles.imageContainer, { backgroundColor: COLORES_TARJETA[index % COLORES_TARJETA.length] }]}>
+                {/* Badge Flora / Fauna siempre visible */}
                 <View style={styles.typeBadge}>
                   <Text style={styles.typeBadgeText}>{item.kind === 'flora' ? 'Flora' : 'Fauna'}</Text>
                 </View>
-                <View style={styles.photoPlaceholder}>
-                  <Text style={styles.photoPlaceholderText}>foto {item.common_name.toLowerCase()}</Text>
-                </View>
+
+                {/* Imagen real o fallback con emoji */}
+                {item.image_url ? (
+                  <Image
+                    source={{ uri: item.image_url }}
+                    style={styles.speciesImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.photoPlaceholder}>
+                    <Text style={styles.photoPlaceholderText}>
+                      {item.kind === 'flora' ? '🌿' : '🦜'}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={styles.infoContainer}>
@@ -155,7 +169,7 @@ export default function CatalogoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbf4e6', // Fondo crema de tu app
+    backgroundColor: '#fbf4e6',
   },
   header: {
     paddingHorizontal: 24,
@@ -207,7 +221,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   catButtonActive: {
-    backgroundColor: '#355343', // Verde bosque activo
+    backgroundColor: '#355343',
     borderColor: '#355343',
   },
   catButtonInactive: {
@@ -235,7 +249,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    width: '47%', // Permite que quepan dos por fila perfectamente
+    width: '47%',
     borderRadius: 24,
     padding: 10,
     marginBottom: 16,
@@ -248,6 +262,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 140,
     borderRadius: 18,
+    overflow: 'hidden',
     padding: 10,
     justifyContent: 'space-between',
   },
@@ -257,23 +272,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
+    zIndex: 1,
   },
   typeBadgeText: {
     fontSize: 10,
     fontWeight: '800',
     color: '#242424',
   },
+  // Imagen real
+  speciesImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  // Fallback sin imagen
   photoPlaceholder: {
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   photoPlaceholderText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#242424',
+    fontSize: 36,
   },
   infoContainer: {
     paddingVertical: 8,
