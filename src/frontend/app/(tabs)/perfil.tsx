@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -174,10 +175,20 @@ function PerfilEstudiante() {
 function PerfilProfesor() {
   const insets = useSafeAreaInsets();
   const { session, profile, signOut } = useAuth();
+  
+  // 2. INICIALIZA LA NAVEGACIÓN
+  const router = useRouter();
+
+  // Datos mockeados basados en la imagen (puedes reemplazarlos por datos de tu base de datos)
+  const cursos = [
+    { id: '1', nivel: '4°', nombre: '4° Básico A', estudiantes: 28, color: '#2B4C3F' },
+    { id: '2', nivel: '4°', nombre: '4° Básico B', estudiantes: 26, color: '#C86D51' },
+  ];
 
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* HEADER */}
         <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
           <View style={styles.profileHeaderRow}>
             <View style={styles.avatarCircle}>
@@ -187,29 +198,82 @@ function PerfilProfesor() {
               <View style={styles.profTag}>
                 <Text style={styles.profTagText}>PROFESOR/A</Text>
               </View>
-              <Text style={styles.userName}>{profile?.full_name ?? 'Profesor/a'}</Text>
-              <Text style={styles.userSubtitle}>Escuela Reducción Monte Verde</Text>
+              <Text style={styles.userName}>{profile?.full_name ?? 'Profe Marcela Pérez'}</Text>
+              <Text style={styles.userSubtitle}>Profesora de Ciencias Naturales</Text>
             </View>
           </View>
         </View>
 
+        {/* CONTENIDO PRINCIPAL */}
         <View style={styles.mainContentWrapper}>
+          
+          {/* TABLA DE INFORMACIÓN CARD */}
           <View style={styles.infoTableCard}>
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>ESCUELA</Text>
-              <Text style={styles.tableValue}>Escuela Reducción Monte Verde</Text>
+              <Text style={styles.tableValue}>Escuela Monteverde - Temuco</Text>
             </View>
             <View style={styles.tableDivider} />
+            
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>CORREO</Text>
-              <Text style={styles.tableValue}>{session?.user.email ?? '—'}</Text>
+              <Text style={styles.tableValue}>{session?.user.email ?? 'marcela@monteverde.cl'}</Text>
+            </View>
+            <View style={styles.tableDivider} />
+
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Ionicons name="person-outline" size={20} color="#8E8A7E" />
+              <Text style={styles.statNumber}>78</Text>  {/*poner numero de estudiantes asignados de la base de datos */}
+              <Text style={styles.statLabel}>ESTUDIANTES</Text>
+            </View>
+            
+            <View style={styles.statCard}>
+              <Ionicons name="document-text-outline" size={20} color="#C86D51" />
+              <Text style={styles.statNumber}>12</Text> {/*poner recursos hechos de la base de datos */}
+              <Text style={styles.statLabel}>RECURSOS</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <Ionicons name="help-circle-outline" size={20} color="#2B4C3F" />
+              <Text style={styles.statNumber}>3</Text> {/*poner numero de cursos asignados de la base de datos */}
+              <Text style={styles.statLabel}>CURSOS</Text>
             </View>
           </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Cursos asignados</Text>
+          </View>
+
+          {/* LISTA DE CURSOS (poner los cursos asignados de la base de datos) */}
+          {cursos.map((curso) => (
+            <TouchableOpacity 
+              key={curso.id} 
+              style={[styles.levelCard, { marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+              onPress={() => {
+                router.push({ pathname: '/(tabs)/cursos', params: { cursoId: curso.id, nombreCurso: curso.nombre } });
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#F2EFE6', width: 44, height: 44, borderRadius: 14, marginBottom: 0, borderLeftWidth: 4, borderLeftColor: curso.color }]}>
+                  <Text style={{ fontSize: 14, fontWeight: 'bold', color: curso.color }}>{curso.nivel}</Text>
+                </View>
+                <View style={{ marginLeft: 14 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#242424' }}>{curso.nombre}</Text>
+                  <Text style={{ fontSize: 12, color: '#8E8A7E', marginTop: 2 }}>{curso.estudiantes} estudiantes</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#8E8A7E" />
+            </TouchableOpacity>
+          ))}
 
           <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
             <Ionicons name="log-out-outline" size={18} color="#C86D51" />
             <Text style={styles.logoutText}>Cerrar sesión</Text>
           </TouchableOpacity>
+          
         </View>
       </ScrollView>
     </View>
