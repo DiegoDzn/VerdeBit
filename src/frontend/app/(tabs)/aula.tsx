@@ -382,4 +382,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 6,
   },
+  deleteButton: {
+    padding: 6,
+    marginRight: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
