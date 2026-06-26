@@ -130,16 +130,35 @@ const handleDelete = (item: EducationalResource) => {
     else if (diffDays < 30) tiempoText = `Hace ${Math.floor(diffDays / 7)} semana${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
     else tiempoText = `Hace ${Math.floor(diffDays / 30)} mes${Math.floor(diffDays / 30) > 1 ? 'es' : ''}`;
 
-    return (
-      <TouchableOpacity style={styles.card} activeOpacity={0.7}>
+return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => handleOpenResource(item.url)}
+      >
         <View style={[styles.iconContainer, { backgroundColor: config.bgColor }]}>
           <Ionicons name={config.icon} size={24} color="#FFFFFF" />
         </View>
         <View style={styles.infoContainer}>
-          <Text style={[styles.tipoText, { color: config.textColor }]}>{TYPE_MAP[item.resource_type]}</Text>
-          <Text style={styles.tituloText} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.autorText}>{item.subject_area || 'General'} • {tiempoText}</Text>
+          <Text style={[styles.tipoText, { color: config.textColor }]}>
+            {TYPE_MAP[item.resource_type]}
+          </Text>
+          <Text style={styles.tituloText} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={styles.autorText}>
+            {item.subject_area || 'General'} • {tiempoText}
+          </Text>
         </View>
+        {esProfesor && (
+          <TouchableOpacity
+            onPress={() => handleDelete(item)}
+            style={styles.deleteButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="trash-outline" size={18} color="#C86D51" />
+          </TouchableOpacity>
+        )}
         <View style={styles.arrowContainer}>
           <Ionicons name="chevron-forward" size={20} color="#666666" />
         </View>
