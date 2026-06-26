@@ -211,7 +211,7 @@ function PerfilProfesor() {
           <View style={styles.infoTableCard}>
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>ESCUELA</Text>
-              <Text style={styles.tableValue}>Escuela Monteverde - Temuco</Text>
+              <Text style={styles.tableValue}>Escuela Reducción Monte Verde</Text>
             </View>
             <View style={styles.tableDivider} />
             
@@ -226,19 +226,19 @@ function PerfilProfesor() {
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
               <Ionicons name="person-outline" size={20} color="#8E8A7E" />
-              <Text style={styles.statNumber}>78</Text>  {/*poner numero de estudiantes asignados de la base de datos */}
+              <Text style={styles.statNumber}>78</Text>
               <Text style={styles.statLabel}>ESTUDIANTES</Text>
             </View>
             
             <View style={styles.statCard}>
               <Ionicons name="document-text-outline" size={20} color="#C86D51" />
-              <Text style={styles.statNumber}>12</Text> {/*poner recursos hechos de la base de datos */}
+              <Text style={styles.statNumber}>12</Text>
               <Text style={styles.statLabel}>RECURSOS</Text>
             </View>
 
             <View style={styles.statCard}>
               <Ionicons name="help-circle-outline" size={20} color="#2B4C3F" />
-              <Text style={styles.statNumber}>3</Text> {/*poner numero de cursos asignados de la base de datos */}
+              <Text style={styles.statNumber}>3</Text>
               <Text style={styles.statLabel}>CURSOS</Text>
             </View>
           </View>
@@ -262,7 +262,9 @@ function PerfilProfesor() {
                 </View>
                 <View style={{ marginLeft: 14 }}>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#242424' }}>{curso.nombre}</Text>
-                  <Text style={{ fontSize: 12, color: '#8E8A7E', marginTop: 2 }}>{curso.estudiantes} estudiantes</Text>
+                  <View style={{ marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: '#8E8A7E' }}>{curso.estudiantes} estudiantes</Text>
+                  </View>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#8E8A7E" />
