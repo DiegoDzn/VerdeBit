@@ -3,7 +3,9 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth/AuthContext';
-import { listResources } from '@/lib/recursos/api';
+import { deleteResource, listResources } from '@/lib/recursos/api';
 import type { EducationalResource } from '@/lib/types';
 
 const CATEGORIAS = ['Todos', 'PDF', 'Enlace', 'Video', 'Imagen', 'Texto'];
@@ -82,6 +84,37 @@ export default function AulaScreen() {
         return { icon: 'document' as const, bgColor: '#999', textColor: '#999' };
     }
   };
+  
+  const handleOpenResource = async (url: string) => {
+  const supported = await Linking.canOpenURL(url);
+  if (supported) {
+    await Linking.openURL(url);
+  } else {
+    Alert.alert('Error', 'No se puede abrir este recurso.');
+  }
+};
+
+const handleDelete = (item: EducationalResource) => {
+  Alert.alert(
+    'Eliminar recurso',
+    `¿Seguro que quieres eliminar "${item.title}"?`,
+    [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteResource(item.id);
+            setRecursos((prev) => prev.filter((r) => r.id !== item.id));
+          } catch {
+            Alert.alert('Error', 'No se pudo eliminar el recurso.');
+          }
+        },
+      },
+    ]
+  );
+};
 
   const renderItem = ({ item }: { item: EducationalResource }) => {
     const config = getTipoConfig(item.resource_type);
