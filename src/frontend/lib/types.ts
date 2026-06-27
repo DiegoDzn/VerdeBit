@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'teacher';
+export type UserRole = 'student' | 'teacher' | 'admin';
 
 export type Profile = {
   id: string;
@@ -123,4 +123,45 @@ export type QuizWithStats = Quiz & {
   total_count: number;
   average_score: number;
   percent: number;
+};
+
+export type Badge = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  icon_url: string | null;
+  points_required: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StudentBadge = {
+  id: string;
+  student_id: string;
+  badge_id: string;
+  awarded_at: string;
+};
+
+export type Course = {
+  id: string;
+  name: string;
+  description: string | null;
+  teacher_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseEnrollment = {
+  id: string;
+  course_id: string;
+  student_id: string;
+  enrolled_at: string;
+};
+
+export type AdminStats = {
+  profesores: number;
+  estudiantes: number;
+  recursos: number;
+  quizzes_publicados: number;
 };
