@@ -125,6 +125,28 @@ export type QuizWithStats = Quiz & {
   percent: number;
 };
 
+// --- Nuevos tipos para el módulo admin ---
+
+export type UserRole = 'student' | 'teacher' | 'admin'; // reemplaza la línea 1 existente
+
+export type Badge = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  icon_url: string | null;
+  points_required: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StudentBadge = {
+  id: string;
+  student_id: string;
+  badge_id: string;
+  awarded_at: string;
+};
+
 export type Course = {
   id: string;
   name: string;
