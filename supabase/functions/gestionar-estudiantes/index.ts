@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     .select('role')
     .single()
 
-  if (profileError || profile?.role !== 'teacher') {
+  if (profileError || (profile?.role !== 'teacher' && profile?.role !== 'admin')) {
     return json({ error: 'Acceso denegado' }, 403)
   }
 
@@ -45,16 +45,25 @@ Deno.serve(async (req) => {
   const { action } = body
 
   if (action === 'create') {
-    const { email, password, fullName } = body
+    const { email, password, fullName, role } = body
 
     if (!email || !password || !fullName) {
       return json({ error: 'Faltan campos: email, password, fullName' }, 400)
     }
 
+    const targetRole = role || 'student'
+    if (targetRole !== 'student' && targetRole !== 'teacher') {
+      return json({ error: 'Rol inválido' }, 400)
+    }
+
+    if (targetRole === 'teacher' && profile.role !== 'admin') {
+      return json({ error: 'Solo el administrador puede crear profesores' }, 403)
+    }
+
     const { data, error } = await adminClient.auth.admin.createUser({
       email,
       password,
-      user_metadata: { role: 'student', full_name: fullName },
+      user_metadata: { role: targetRole, full_name: fullName },
       email_confirm: true,
     })
 
@@ -73,8 +82,11 @@ Deno.serve(async (req) => {
       .eq('id', userId)
       .single()
 
-    if (targetError) return json({ error: 'Estudiante no encontrado' }, 404)
-    if (target.role !== 'student') return json({ error: 'Solo se pueden eliminar estudiantes' }, 400)
+    if (targetError) return json({ error: 'Usuario no encontrado' }, 404)
+    if (target.role === 'admin') return json({ error: 'No se puede eliminar a un administrador' }, 403)
+    if (target.role === 'teacher' && profile.role !== 'admin') {
+      return json({ error: 'Solo el administrador puede eliminar profesores' }, 403)
+    }
 
     const { error } = await adminClient.auth.admin.deleteUser(userId)
     if (error) return json({ error: error.message }, 400)
