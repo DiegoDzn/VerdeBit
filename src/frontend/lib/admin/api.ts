@@ -1,5 +1,20 @@
 import { supabase } from '@/lib/supabase/client';
-import type { AdminStats, Badge, Course, Profile, UserRole } from '@/lib/types';
+import type { AdminStats, Badge, Course, Event, Profile, UserRole } from '@/lib/types';
+
+export type AdminEventInput = {
+  title: string;
+  description: string | null;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+};
+
+export type CrearUsuarioAdminInput = {
+  email: string;
+  password: string;
+  fullName: string;
+  role: Extract<UserRole, 'student' | 'teacher'>;
+};
 
 export async function listarUsuarios(): Promise<Profile[]> {
   const { data, error } = await supabase
@@ -9,6 +24,22 @@ export async function listarUsuarios(): Promise<Profile[]> {
     .order('full_name');
   if (error) throw new Error(error.message);
   return (data ?? []) as Profile[];
+}
+
+export async function crearUsuarioAdmin(input: CrearUsuarioAdminInput): Promise<Profile> {
+  const { data, error } = await supabase.functions.invoke('gestionar-estudiantes', {
+    body: {
+      action: 'create',
+      email: input.email,
+      password: input.password,
+      fullName: input.fullName,
+      role: input.role,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data.profile as Profile;
 }
 
 export async function cambiarRol(userId: string, nuevoRol: UserRole): Promise<void> {
@@ -96,17 +127,57 @@ export async function otorgarMedalla(studentId: string, badgeId: string): Promis
   if (error) throw new Error(error.message);
 }
 
+export async function listarEventosAdmin(): Promise<Event[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('starts_at', { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Event[];
+}
+
+export async function crearEventoAdmin(authorId: string, input: AdminEventInput): Promise<Event> {
+  const { data, error } = await supabase
+    .from('events')
+    .insert({ ...input, author_id: authorId })
+    .select('*')
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Event;
+}
+
+export async function actualizarEventoAdmin(eventId: string, input: AdminEventInput): Promise<Event> {
+  const { data, error } = await supabase
+    .from('events')
+    .update(input)
+    .eq('id', eventId)
+    .select('*')
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Event;
+}
+
+export async function eliminarEventoAdmin(eventId: string): Promise<void> {
+  const { error } = await supabase.from('events').delete().eq('id', eventId);
+  if (error) throw new Error(error.message);
+}
+
 export async function obtenerEstadisticas(): Promise<AdminStats> {
-  const [profesores, estudiantes, recursos, quizzes] = await Promise.all([
+  const [profesores, estudiantes, recursos, quizzes, eventos] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher'),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
     supabase.from('educational_resources').select('id', { count: 'exact', head: true }),
     supabase.from('quizzes').select('id', { count: 'exact', head: true }).eq('is_published', true),
+    supabase.from('events').select('id', { count: 'exact', head: true }),
   ]);
   return {
     profesores: profesores.count ?? 0,
     estudiantes: estudiantes.count ?? 0,
     recursos: recursos.count ?? 0,
     quizzes_publicados: quizzes.count ?? 0,
+    eventos: eventos.count ?? 0,
   };
 }

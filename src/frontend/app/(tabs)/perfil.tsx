@@ -294,6 +294,7 @@ function PerfilAdmin() {
     { label: 'Gestión de usuarios',  icon: 'people-outline' as const,           ruta: '/admin/usuarios' },
     { label: 'Gestión de cursos',    icon: 'school-outline' as const,            ruta: '/admin/cursos' },
     { label: 'Gamificación',         icon: 'medal-outline' as const,             ruta: '/admin/gamificacion' },
+    { label: 'Eventos',              icon: 'calendar-outline' as const,          ruta: '/admin/eventos' },
     { label: 'Panel general',        icon: 'grid-outline' as const,              ruta: '/admin' },
   ];
 

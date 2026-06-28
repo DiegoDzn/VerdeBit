@@ -164,4 +164,5 @@ export type AdminStats = {
   estudiantes: number;
   recursos: number;
   quizzes_publicados: number;
+  eventos: number;
 };

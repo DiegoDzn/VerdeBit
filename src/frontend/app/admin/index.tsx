@@ -29,7 +29,7 @@ export default function AdminDashboard() {
     if (role && role !== 'admin') {
       router.replace('/(tabs)');
     }
-  }, [role]);
+  }, [role, router]);
 
   useEffect(() => {
     let activo = true;
@@ -65,6 +65,14 @@ export default function AdminDashboard() {
       color: '#D9A74A',
       bgColor: '#FDF4DF',
       ruta: '/admin/gamificacion',
+    },
+    {
+      label: 'Eventos',
+      descripcion: 'Calendario visible para la comunidad',
+      icon: 'calendar' as const,
+      color: '#3E6B52',
+      bgColor: '#E6F0EA',
+      ruta: '/admin/eventos',
     },
   ];
 
@@ -105,6 +113,7 @@ export default function AdminDashboard() {
               <StatCard valor={stats.estudiantes} label="ESTUDIANTES" icon="people" color="#2B4C3F" bgColor="#E2EDE6" />
               <StatCard valor={stats.recursos} label="RECURSOS" icon="document-text" color="#C86D51" bgColor="#FBECE8" />
               <StatCard valor={stats.quizzes_publicados} label="QUIZZES" icon="help-circle" color="#D9A74A" bgColor="#FDF4DF" />
+              <StatCard valor={stats.eventos} label="EVENTOS" icon="calendar" color="#3E6B52" bgColor="#E6F0EA" />
             </View>
           ) : null}
 
