@@ -1,15 +1,45 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth/AuthContext';
+import { listUpcomingEvents } from '@/lib/calendario/api';
+import type { Event } from '@/lib/types';
+
+function formatearEvento(iso: string): string {
+  const fecha = new Date(iso);
+  return fecha.toLocaleDateString('es-CL', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export default function InicioScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { role } = useAuth();
+  const { profile, role } = useAuth();
   const esProfesor = role === 'teacher';
+  const nombre = profile?.full_name?.trim() || (esProfesor ? 'Docente' : 'Exploradora');
+  const primerNombre = nombre.split(' ')[0];
+  const [proximoEvento, setProximoEvento] = useState<Event | null>(null);
+
+  useEffect(() => {
+    let activo = true;
+    listUpcomingEvents()
+      .then((eventos) => {
+        if (activo) setProximoEvento(eventos[0] ?? null);
+      })
+      .catch(() => {
+        if (activo) setProximoEvento(null);
+      });
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -24,14 +54,14 @@ export default function InicioScreen() {
           <View style={styles.userInfoRow}>
             {/* Avatar Círculo Amarillo */}
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>A</Text>
+              <Text style={styles.avatarText}>{primerNombre.charAt(0).toUpperCase()}</Text>
             </View>
             <View>
               <Text style={styles.greetingText}>
                 {esProfesor ? '¡Hola, docente!' : '¡Hola, exploradora!'}
               </Text>
               <Text style={styles.userNameText}>
-                {esProfesor ? 'Prof. Alejandro' : 'Antonia'}
+                {esProfesor ? `Prof. ${primerNombre}` : primerNombre}
               </Text>
             </View>
           </View>
@@ -104,6 +134,23 @@ export default function InicioScreen() {
           </View>
           
           <Text style={[styles.sectionSubtitle, { marginBottom: 20 }]}>Calendario del humedal</Text>
+
+          <TouchableOpacity style={styles.cardEvent} activeOpacity={0.75} onPress={() => router.push('/(tabs)/eventos')}>
+            <View style={styles.eventIcon}>
+              <Text style={styles.eventIconText}>📅</Text>
+            </View>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventLabel}>
+                {proximoEvento ? formatearEvento(proximoEvento.starts_at).toUpperCase() : 'SIN EVENTOS PROGRAMADOS'}
+              </Text>
+              <Text style={styles.eventTitle} numberOfLines={1}>
+                {proximoEvento?.title ?? 'Aún no hay actividades próximas'}
+              </Text>
+              <Text style={styles.eventText} numberOfLines={2}>
+                {proximoEvento?.location || proximoEvento?.description || 'Cuando administración publique un evento aparecerá aquí.'}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
         </View>
       </ScrollView>
@@ -320,5 +367,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#355343',
+  },
+  cardEvent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 16,
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  eventIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 18,
+    backgroundColor: '#EBF0EC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eventIconText: {
+    fontSize: 22,
+  },
+  eventInfo: {
+    flex: 1,
+  },
+  eventLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#355343',
+    letterSpacing: 0.5,
+    marginBottom: 3,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#242424',
+  },
+  eventText: {
+    fontSize: 12,
+    color: '#7e7568',
+    lineHeight: 17,
+    marginTop: 3,
   },
 });
