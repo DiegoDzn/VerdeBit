@@ -28,6 +28,9 @@ function inicial(nombre: string | null | undefined): string {
 
 export default function PerfilScreen() {
   const { role } = useAuth();
+  if (role === 'admin') {
+    return <PerfilAdmin />;
+  }
   if (role === 'teacher') {
     return <PerfilProfesor />;
   }
@@ -276,6 +279,72 @@ function PerfilProfesor() {
             <Text style={styles.logoutText}>Cerrar sesión</Text>
           </TouchableOpacity>
           
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function PerfilAdmin() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { profile, session, signOut } = useAuth();
+
+  const accesos = [
+    { label: 'Gestión de usuarios',  icon: 'people-outline' as const,           ruta: '/admin/usuarios' },
+    { label: 'Gestión de cursos',    icon: 'school-outline' as const,            ruta: '/admin/cursos' },
+    { label: 'Gamificación',         icon: 'medal-outline' as const,             ruta: '/admin/gamificacion' },
+    { label: 'Panel general',        icon: 'grid-outline' as const,              ruta: '/admin' },
+  ];
+
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={[styles.headerBg, { paddingTop: insets.top + 20 }]}>
+          <View style={styles.profileHeaderRow}>
+            <View style={[styles.avatarCircle, { backgroundColor: '#D9A74A' }]}>
+              <Text style={styles.avatarText}>{inicial(profile?.full_name)}</Text>
+            </View>
+            <View style={styles.headerInfo}>
+              <View style={styles.profTag}>
+                <Text style={styles.profTagText}>ADMINISTRADOR</Text>
+              </View>
+              <Text style={styles.userName}>{profile?.full_name ?? 'Admin'}</Text>
+              <Text style={styles.userSubtitle}>{session?.user.email}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.mainContentWrapper}>
+          {/* Accesos rápidos */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Panel de administración</Text>
+          </View>
+
+          {accesos.map((item) => (
+            <TouchableOpacity
+              key={item.ruta}
+              style={[styles.levelCard, { marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+              activeOpacity={0.7}
+              onPress={() => router.push(item.ruta as any)}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#EBF0EC', width: 44, height: 44, borderRadius: 14, marginBottom: 0 }]}>
+                  <Ionicons name={item.icon} size={20} color="#355343" />
+                </View>
+                <Text style={{ marginLeft: 14, fontSize: 15, fontWeight: '600', color: '#242424' }}>
+                  {item.label}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#8E8A7E" />
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Ionicons name="log-out-outline" size={18} color="#C86D51" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
