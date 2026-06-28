@@ -10,7 +10,7 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
-  const { role, isAdmin } = useAuth();
+  const { role } = useAuth();
   const esProfesor = role === 'teacher';
 
   const tabBarHeight = Platform.OS === 'ios' ? 75 + insets.bottom : 80 + insets.bottom;
@@ -119,24 +119,6 @@ export default function TabLayout() {
           href: null,
         }}
       />
-      <Tabs.Screen
-        name="admin"
-        options={{
-          href: isAdmin ? '/admin' : null,
-          title: 'Admin',
-          tabBarButton: (props) =>
-            isAdmin ? (
-              <CustomTabButton
-                {...props}
-                icon="shield-checkmark"
-                label="Admin"
-                isActive={isTabActive('admin')}
-                insetsBottom={insets.bottom}
-              />
-            ) : null,
-        }}
-      />
-    
     </Tabs>
   );
 }
@@ -154,6 +136,7 @@ function CustomTabButton(props: any) {
 }
 
 const styles = StyleSheet.create({
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fbf4e6' },
   tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pillContainer: { flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 8, width: 75, height: 55 },
   pillActive: { backgroundColor: '#006B2D' },

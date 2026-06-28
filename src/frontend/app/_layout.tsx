@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/auth/AuthContext';
 const RUTAS_PUBLICAS = ['login', 'nuevaContrasena'];
 
 function AuthGate() {
-  const { session, loading } = useAuth();
+  const { session, loading, role } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -18,12 +18,16 @@ function AuthGate() {
     const ruta = segments[0] as string | undefined;
     const enRutaPublica = !ruta || RUTAS_PUBLICAS.includes(ruta);
 
-    if (!session && !enRutaPublica) {
-      router.replace('/login');
-    } else if (session && enRutaPublica) {
+    if (!session) {
+      if (!enRutaPublica) router.replace('/login');
+    } else if (enRutaPublica) {
+      router.replace(role === 'admin' ? '/admin' : '/(tabs)');
+    } else if (role === 'admin' && ruta !== 'admin') {
+      router.replace('/admin');
+    } else if (role !== 'admin' && ruta === 'admin') {
       router.replace('/(tabs)');
     }
-  }, [session, loading, segments, router]);
+  }, [session, loading, role, segments, router]);
 
   if (loading) {
     return (
@@ -39,6 +43,9 @@ function AuthGate() {
       <Stack.Screen name="login" />
       <Stack.Screen name="nuevaContrasena" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="admin" />
+      <Stack.Screen name="professor" />
+      <Stack.Screen name="quiz" />
     </Stack>
   );
 }
