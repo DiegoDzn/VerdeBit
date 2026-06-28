@@ -10,7 +10,7 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
-  const { role } = useAuth();
+  const { role, isAdmin } = useAuth();
   const esProfesor = role === 'teacher';
 
   const tabBarHeight = Platform.OS === 'ios' ? 75 + insets.bottom : 80 + insets.bottom;
@@ -117,6 +117,23 @@ export default function TabLayout() {
         name="cursos"
         options={{
           href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          href: isAdmin ? '/admin' : null,
+          title: 'Admin',
+          tabBarButton: (props) =>
+            isAdmin ? (
+              <CustomTabButton
+                {...props}
+                icon="shield-checkmark"
+                label="Admin"
+                isActive={isTabActive('admin')}
+                insetsBottom={insets.bottom}
+              />
+            ) : null,
         }}
       />
     
