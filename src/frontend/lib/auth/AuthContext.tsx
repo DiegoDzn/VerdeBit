@@ -8,6 +8,7 @@ type AuthContextValue = {
   session: Session | null;
   profile: Profile | null;
   role: UserRole | null;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -77,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       profile,
       role: profile?.role ?? null,
+      isAdmin: profile?.role === 'admin',
       loading,
       signIn,
       signOut,
