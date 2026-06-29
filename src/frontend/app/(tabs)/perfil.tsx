@@ -355,7 +355,7 @@ function PerfilAdmin() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F6EE',
+    backgroundColor: '#fbf4e6',
   },
   centro: {
     alignItems: 'center',
