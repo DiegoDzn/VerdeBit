@@ -187,3 +187,78 @@ export async function getQuizStats(
 
   return { completed: completedCount, total: totalCount ?? 0, average };
 }
+
+export async function getTeacherDashboardStats(teacherId: string) {
+  const coursesQuery = supabase
+    .from('courses')
+    .select('id', { count: 'exact', head: true })
+    .eq('teacher_id', teacherId);
+
+  const resourcesQuery = supabase
+    .from('educational_resources')
+    .select('id', { count: 'exact', head: true })
+    .eq('author_id', teacherId);
+
+  const { data: courses } = await supabase
+    .from('courses')
+    .select('id')
+    .eq('teacher_id', teacherId);
+
+  let uniqueStudentsCount = 0;
+  if (courses && courses.length > 0) {
+    const courseIds = courses.map((c) => c.id);
+    const { data: enrollments } = await supabase
+      .from('course_enrollments')
+      .select('student_id')
+      .in('course_id', courseIds);
+    
+    if (enrollments) {
+      const uniqueIds = new Set(enrollments.map((e) => e.student_id));
+      uniqueStudentsCount = uniqueIds.size;
+    }
+  }
+
+  const [
+    { count: coursesCount },
+    { count: resourcesCount }
+  ] = await Promise.all([coursesQuery, resourcesQuery]);
+
+  return {
+    estudiantes: uniqueStudentsCount,
+    recursos: resourcesCount ?? 0,
+    cursos: coursesCount ?? 0,
+  };
+}
+
+export async function getTeacherCourses(teacherId: string) {
+  const { data: courses, error } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('teacher_id', teacherId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  if (!courses || courses.length === 0) return [];
+
+  const courseIds = courses.map((c) => c.id);
+  const { data: enrollments, error: enrollError } = await supabase
+    .from('course_enrollments')
+    .select('course_id')
+    .in('course_id', courseIds);
+
+  if (enrollError) throw new Error(enrollError.message);
+
+  const studentCountMap: Record<string, number> = {};
+  if (enrollments) {
+    for (const e of enrollments) {
+      studentCountMap[e.course_id] = (studentCountMap[e.course_id] || 0) + 1;
+    }
+  }
+
+  return courses.map((course) => ({
+    id: course.id,
+    nombre: course.name,
+    nivel: course.name.split(' ')[0] || 'N/A',
+    estudiantes: studentCountMap[course.id] || 0,
+  }));
+}
