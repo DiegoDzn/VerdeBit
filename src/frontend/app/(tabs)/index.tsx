@@ -124,8 +124,21 @@ export default function InicioScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* --- NUEVA SECCIÓN: CULTURA MAPUCHE --- */}
+          <Text style={styles.sectionTitle}>Cultura Mapuche</Text>
+          <Text style={styles.sectionSubtitle}>Sabiduría ancestral del territorio</Text>
+
+          <View style={styles.cardMapuche}>
+            <Text style={styles.mapucheLabel}>KIMÜN (CONOCIMIENTO)</Text>
+            <Text style={styles.mapucheText}>
+              Descubre cómo la cosmovisión mapuche coexiste con los ecosistemas, el respeto por el "Menoko" (humedal) y la naturaleza.
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/culturamapuche')}>
+              <Text style={styles.viewMoreMapuche}>Aprender más ›</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Próximo Evento */}
- 
           <View style={styles.eventHeaderRow}>
             <Text style={styles.sectionTitle}>Próximo evento</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/eventos')}>
@@ -161,14 +174,13 @@ export default function InicioScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbf4e6', // Fondo crema de la app
+    backgroundColor: '#fbf4e6', 
   },
   scrollContent: {
     paddingBottom: 100,
   },
-  // --- HEADER ESTILO MAQUETA ---
   greenHeader: {
-    backgroundColor: '#355343', // Verde bosque de la imagen
+    backgroundColor: '#355343', 
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     paddingHorizontal: 24,
@@ -184,7 +196,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#ebdcc5', // Color crema/amarillo del avatar
+    backgroundColor: '#ebdcc5', 
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -210,10 +222,9 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     maxWidth: '85%',
   },
-  // --- SECCIÓN INFERIOR BLANCA ---
   whiteSection: {
     paddingHorizontal: 24,
-    marginTop: -15, // Solape estético suave
+    marginTop: -15, 
   },
   cardLevel: {
     backgroundColor: '#ffffff',
@@ -267,9 +278,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#355343',
   },
-  // --- TARJETA QUIZ TERRACOTA ---
   cardQuiz: {
-    backgroundColor: '#c46d46', // Color arcilla/naranja del mock
+    backgroundColor: '#c46d46', 
     borderRadius: 24,
     padding: 20,
     marginBottom: 25,
@@ -320,11 +330,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
   },
-  // --- DATOS Y TEXTOS ---
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#242424',
+    marginTop: 10,
   },
   sectionSubtitle: {
     fontSize: 14,
@@ -332,7 +342,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   cardData: {
-    backgroundColor: '#dfae4b', // Mostaza/Amarillo del dato del día
+    backgroundColor: '#dfae4b', 
     borderRadius: 24,
     padding: 20,
     marginTop: 12,
@@ -357,6 +367,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#242424',
+  },
+  cardMapuche: {
+    backgroundColor: '#8C4F2B',
+    borderRadius: 24,
+    padding: 20,
+    marginTop: 12,
+    marginBottom: 25,
+  },
+  mapucheLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#ffffff',
+    opacity: 0.7,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  mapucheText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  viewMoreMapuche: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#ebdcc5', 
   },
   eventHeaderRow: {
     flexDirection: 'row',

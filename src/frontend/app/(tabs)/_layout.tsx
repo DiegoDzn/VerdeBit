@@ -125,6 +125,12 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="culturamapuche"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
