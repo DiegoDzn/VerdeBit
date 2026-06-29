@@ -12,12 +12,12 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router'; 
 
 import { listSpecies } from '@/lib/catalogo/api';
 import type { Species, SpeciesKind } from '@/lib/types';
 
 const CATEGORIAS = ['Todos', 'Flora', 'Fauna'];
-
 const COLORES_TARJETA = ['#a67c5d', '#6a97b4', '#6d8c60', '#768d56'];
 
 const KIND_POR_CATEGORIA: Record<string, SpeciesKind | undefined> = {
@@ -28,6 +28,7 @@ const KIND_POR_CATEGORIA: Record<string, SpeciesKind | undefined> = {
 
 export default function CatalogoScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter(); 
   const [categoriaActiva, setCategoriaActiva] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
   const [especies, setEspecies] = useState<Species[]>([]);
@@ -84,10 +85,10 @@ export default function CatalogoScreen() {
         />
       </View>
 
-      {/* --- FILTROS DE CATEGORÍAS (Horizontal) --- */}
+      {/* --- FILTROS DE CATEGORÍAS --- */}
       <View style={styles.categoriesContainer}>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesScroll}
         >
@@ -130,14 +131,21 @@ export default function CatalogoScreen() {
             </View>
           }
           renderItem={({ item, index }) => (
-            <View style={styles.card}>
+            <TouchableOpacity 
+              style={styles.card}
+              activeOpacity={0.7}
+              onPress={() => {
+                router.push({
+                  pathname: '/catalogoinfo',
+                  params: { id: item.id, name: item.common_name }
+                });
+              }}
+            >
               <View style={[styles.imageContainer, { backgroundColor: COLORES_TARJETA[index % COLORES_TARJETA.length] }]}>
-                {/* Badge Flora / Fauna siempre visible */}
                 <View style={styles.typeBadge}>
                   <Text style={styles.typeBadgeText}>{item.kind === 'flora' ? 'Flora' : 'Fauna'}</Text>
                 </View>
 
-                {/* Imagen real o fallback con emoji */}
                 {item.image_url ? (
                   <Image
                     source={{ uri: item.image_url }}
@@ -157,15 +165,13 @@ export default function CatalogoScreen() {
                 <Text style={styles.speciesName}>{item.common_name}</Text>
                 <Text style={styles.scientificName}>{item.scientific_name}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}
-
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -185,7 +191,6 @@ const styles = StyleSheet.create({
     color: '#7e7568',
     marginTop: 2,
   },
-  // Buscador
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -206,7 +211,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#242424',
   },
-  // Categorías
   categoriesContainer: {
     marginBottom: 20,
   },
