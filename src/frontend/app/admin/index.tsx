@@ -18,7 +18,7 @@ import type { AdminStats } from '@/lib/types';
 export default function AdminDashboard() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, role } = useAuth();
+  const { profile, role, signOut } = useAuth();
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -138,7 +138,10 @@ export default function AdminDashboard() {
               <Ionicons name="chevron-forward" size={20} color="#8E8A7E" />
             </TouchableOpacity>
           ))}
-
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+           <Ionicons name="log-out-outline" size={18} color="#C86D51" />
+           <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -169,6 +172,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9F6EE',
+  },
+  logoutButton: {
+    marginTop: 28,
+    backgroundColor: '#FFFDF9',
+    borderRadius: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#ebdcc5',
+  },
+  logoutText: {
+    color: '#C86D51',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
   scrollContent: {
     paddingBottom: 40,
