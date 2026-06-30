@@ -20,6 +20,7 @@ import {
   type StudentProfile,
 } from '@/lib/gamificacion/api';
 import { getMyResources } from '@/lib/recursos/api';
+import { getTeacherDashboardStats, getTeacherCourses } from '@/lib/professor/api';
 
 const COLORES_MEDALLA = ['#7E9362', '#6289A3', '#D9A74A', '#C86D51'];
 
@@ -183,11 +184,39 @@ function PerfilProfesor() {
   const [cantidadRecursos, setCantidadRecursos] = useState<number>(0);
   const [cargandoRecursos, setCargandoRecursos] = useState(true);
 
-  // Datos mockeados basados en la imagen (puedes reemplazarlos por datos de tu base de datos)
-  const cursos = [
-    { id: '1', nivel: '4°', nombre: '4° Básico A', estudiantes: 28, color: '#2B4C3F' },
-    { id: '2', nivel: '4°', nombre: '4° Básico B', estudiantes: 26, color: '#C86D51' },
-  ];
+  const [stats, setStats] = useState({ estudiantes: 0, recursos: 0, cursos: 0 });
+  const [cursos, setCursos] = useState<{id: string; nombre: string; nivel: string; estudiantes: number}[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    let activo = true;
+    if (session?.user.id) {
+      Promise.all([
+        getTeacherDashboardStats(session.user.id),
+        getTeacherCourses(session.user.id)
+      ]).then(([newStats, newCursos]) => {
+        if (activo) {
+          setStats(newStats);
+          setCursos(newCursos);
+          setCargando(false);
+        }
+      }).catch((e) => {
+        console.error('Error cargando perfil profesor:', e);
+        if (activo) setCargando(false);
+      });
+    }
+    return () => { activo = false; };
+  }, [session?.user.id]);
+
+  const COLORES_CURSOS = ['#2B4C3F', '#C86D51', '#D9A74A'];
+
+  if (cargando) {
+    return (
+      <View style={[styles.container, styles.centro]}>
+        <ActivityIndicator size="large" color="#355343" />
+      </View>
+    );
+  }
 
   useEffect(() => {
     if (!session?.user.id) return;
@@ -245,7 +274,7 @@ function PerfilProfesor() {
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
               <Ionicons name="person-outline" size={20} color="#8E8A7E" />
-              <Text style={styles.statNumber}>78</Text>
+              <Text style={styles.statNumber}>{stats.estudiantes}</Text>
               <Text style={styles.statLabel}>ESTUDIANTES</Text>
             </View>
             
@@ -257,7 +286,7 @@ function PerfilProfesor() {
 
             <View style={styles.statCard}>
               <Ionicons name="help-circle-outline" size={20} color="#2B4C3F" />
-              <Text style={styles.statNumber}>3</Text>
+              <Text style={styles.statNumber}>{stats.cursos}</Text>
               <Text style={styles.statLabel}>CURSOS</Text>
             </View>
           </View>
@@ -267,7 +296,9 @@ function PerfilProfesor() {
           </View>
 
           {/* LISTA DE CURSOS (poner los cursos asignados de la base de datos) */}
-          {cursos.map((curso) => (
+          {cursos.map((curso, index) => {
+            const color = COLORES_CURSOS[index % COLORES_CURSOS.length];
+            return (
             <TouchableOpacity 
               key={curso.id} 
               style={[styles.levelCard, { marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
@@ -276,8 +307,8 @@ function PerfilProfesor() {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#F2EFE6', width: 44, height: 44, borderRadius: 14, marginBottom: 0, borderLeftWidth: 4, borderLeftColor: curso.color }]}>
-                  <Text style={{ fontSize: 14, fontWeight: 'bold', color: curso.color }}>{curso.nivel}</Text>
+                <View style={[styles.statIconCircle, { backgroundColor: '#F2EFE6', width: 44, height: 44, borderRadius: 14, marginBottom: 0, borderLeftWidth: 4, borderLeftColor: color }]}>
+                  <Text style={{ fontSize: 14, fontWeight: 'bold', color: color }}>{curso.nivel}</Text>
                 </View>
                 <View style={{ marginLeft: 14 }}>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#242424' }}>{curso.nombre}</Text>
@@ -288,7 +319,7 @@ function PerfilProfesor() {
               </View>
               <Ionicons name="chevron-forward" size={20} color="#8E8A7E" />
             </TouchableOpacity>
-          ))}
+          )})}
 
           <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
             <Ionicons name="log-out-outline" size={18} color="#C86D51" />

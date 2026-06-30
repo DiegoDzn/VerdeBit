@@ -139,6 +139,15 @@ export default function UsuariosScreen() {
           }
         />
       )}
+
+      {/* FAB para crear usuario */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => router.push('/admin/usuario/crear')}
+      >
+        <Ionicons name="add" size={24} color="#ffffff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -284,5 +293,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#8E8A7E',
     textAlign: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#355343',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
 });
