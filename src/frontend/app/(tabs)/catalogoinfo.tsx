@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { listSpecies } from '@/lib/catalogo/api'; 
+import { getSpecies } from '@/lib/catalogo/api'; 
 import type { Species } from '@/lib/types';
 
 export default function CatalogoinfoScreen() {
@@ -17,11 +17,11 @@ export default function CatalogoinfoScreen() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    if (!id) return;
     setCargando(true);
-    listSpecies()
+    getSpecies(id)
       .then((data) => {
-        const encontrada = data.find(e => e.id === id);
-        if (encontrada) setEspecie(encontrada);
+        setEspecie(data);
       })
       .catch((err) => console.log(err))
       .finally(() => setCargando(false));
@@ -73,9 +73,28 @@ export default function CatalogoinfoScreen() {
         <View style={styles.divider} />
         
         <Text style={styles.seccionTitulo}>Descripción</Text>
-        <Text style={styles.descripcion}>   {/* --- conectar con la descripción de la especie --- */}
-          Esta es una hermosa especie de {especie.kind} que habita en las zonas protegidas del humedal.
-        </Text>
+        <Text style={styles.descripcion}>{especie.description}</Text>
+
+        {especie.habitat && (
+          <>
+            <Text style={styles.seccionTitulo}>Hábitat</Text>
+            <Text style={styles.descripcion}>{especie.habitat}</Text>
+          </>
+        )}
+
+        {especie.conservation_status && (
+          <>
+            <Text style={styles.seccionTitulo}>Estado de Conservación</Text>
+            <Text style={styles.descripcion}>{especie.conservation_status}</Text>
+          </>
+        )}
+
+        {especie.mapuche_name && (
+          <>
+            <Text style={styles.seccionTitulo}>Nombre Mapuche</Text>
+            <Text style={styles.descripcion}>{especie.mapuche_name}</Text>
+          </>
+        )}
       </View>
     </View>
   );
