@@ -19,6 +19,7 @@ import {
   type Badge,
   type StudentProfile,
 } from '@/lib/gamificacion/api';
+import { getMyResources } from '@/lib/recursos/api';
 
 const COLORES_MEDALLA = ['#7E9362', '#6289A3', '#D9A74A', '#C86D51'];
 
@@ -178,15 +179,30 @@ function PerfilEstudiante() {
 function PerfilProfesor() {
   const insets = useSafeAreaInsets();
   const { session, profile, signOut } = useAuth();
-  
-  // 2. INICIALIZA LA NAVEGACIÓN
   const router = useRouter();
+  const [cantidadRecursos, setCantidadRecursos] = useState<number>(0);
+  const [cargandoRecursos, setCargandoRecursos] = useState(true);
 
   // Datos mockeados basados en la imagen (puedes reemplazarlos por datos de tu base de datos)
   const cursos = [
     { id: '1', nivel: '4°', nombre: '4° Básico A', estudiantes: 28, color: '#2B4C3F' },
     { id: '2', nivel: '4°', nombre: '4° Básico B', estudiantes: 26, color: '#C86D51' },
   ];
+
+  useEffect(() => {
+    if (!session?.user.id) return;
+    
+    getMyResources(session.user.id)
+      .then((recursos) => {
+        setCantidadRecursos(recursos.length);
+      })
+      .catch(() => {
+        setCantidadRecursos(0);
+      })
+      .finally(() => {
+        setCargandoRecursos(false);
+      });
+  }, [session?.user.id]);
 
   return (
     <View style={styles.container}>
@@ -235,7 +251,7 @@ function PerfilProfesor() {
             
             <View style={styles.statCard}>
               <Ionicons name="document-text-outline" size={20} color="#C86D51" />
-              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statNumber}>{cantidadRecursos}</Text>
               <Text style={styles.statLabel}>RECURSOS</Text>
             </View>
 
