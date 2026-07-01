@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Quiz, QuizOption, QuizQuestion } from '@/lib/types';
+import type { Profile, Quiz, QuizOption, QuizQuestion } from '@/lib/types';
 
 export async function getMyQuizzes(userId: string): Promise<Quiz[]> {
   const { data, error } = await supabase
@@ -260,5 +260,22 @@ export async function getTeacherCourses(teacherId: string) {
     nombre: course.name,
     nivel: course.name.split(' ')[0] || 'N/A',
     estudiantes: studentCountMap[course.id] || 0,
+  }));
+}
+
+export async function getCourseStudents(
+  courseId: string,
+): Promise<(Profile & { enrolled_at: string })[]> {
+  const { data, error } = await supabase
+    .from('course_enrollments')
+    .select('enrolled_at, student:profiles(*)')
+    .eq('course_id', courseId)
+    .order('enrolled_at', { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map((entry: any) => ({
+    ...entry.student,
+    enrolled_at: entry.enrolled_at,
   }));
 }
