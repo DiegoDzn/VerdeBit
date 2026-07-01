@@ -194,29 +194,26 @@ function PerfilProfesor() {
       Promise.all([
         getTeacherDashboardStats(session.user.id),
         getTeacherCourses(session.user.id)
-      ]).then(([newStats, newCursos]) => {
+      ])
+      .then(([newStats, newCursos]) => {
         if (activo) {
           setStats(newStats);
           setCursos(newCursos);
           setCargando(false);
         }
-      }).catch((e) => {
-        console.error('Error cargando perfil profesor:', e);
-        if (activo) setCargando(false);
+      })
+      .catch((errorInesperado: unknown) => {
+        console.error('Error cargando perfil profesor:', errorInesperado);
+        if (activo) {
+          setCargando(false);
+        }
       });
     }
-    return () => { activo = false; };
+
+    return () => { 
+      activo = false; 
+    };
   }, [session?.user.id]);
-
-  const COLORES_CURSOS = ['#2B4C3F', '#C86D51', '#D9A74A'];
-
-  if (cargando) {
-    return (
-      <View style={[styles.container, styles.centro]}>
-        <ActivityIndicator size="large" color="#355343" />
-      </View>
-    );
-  }
 
   useEffect(() => {
     if (!session?.user.id) return;
@@ -232,6 +229,16 @@ function PerfilProfesor() {
         setCargandoRecursos(false);
       });
   }, [session?.user.id]);
+
+  if (cargando) {
+    return (
+      <View style={[styles.container, styles.centro]}>
+        <ActivityIndicator size="large" color="#355343" />
+      </View>
+    );
+  }
+
+  const COLORES_CURSOS = ['#2B4C3F', '#C86D51', '#D9A74A'];
 
   return (
     <View style={styles.container}>
