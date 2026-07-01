@@ -5,7 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth/AuthContext';
 import { listUpcomingEvents } from '@/lib/calendario/api';
-import type { Event } from '@/lib/types';
+import { listDidYouKnow, listMapucheContent } from '@/lib/contenido/api';
+import { levelFromPoints } from '@/lib/gamificacion/api';
+import { getTeacherDashboardStats } from '@/lib/professor/api';
+import { listPublishedQuizzes } from '@/lib/quizzes/api';
+import type { DidYouKnow, Event, MapucheContent, Quiz } from '@/lib/types';
 
 function formatearEvento(iso: string): string {
   const fecha = new Date(iso);
@@ -25,21 +29,54 @@ export default function InicioScreen() {
   const esProfesor = role === 'teacher';
   const nombre = profile?.full_name?.trim() || (esProfesor ? 'Docente' : 'Exploradora');
   const primerNombre = nombre.split(' ')[0];
+
   const [proximoEvento, setProximoEvento] = useState<Event | null>(null);
+  const [puntos, setPuntos] = useState(0);
+  const [nivel, setNivel] = useState(0);
+  const [statsProfesor, setStatsProfesor] = useState<{ estudiantes: number; recursos: number; cursos: number } | null>(null);
+  const [quizDestacado, setQuizDestacado] = useState<Quiz | null>(null);
+  const [datoDelDia, setDatoDelDia] = useState<DidYouKnow | null>(null);
+  const [contenidoMapuche, setContenidoMapuche] = useState<MapucheContent | null>(null);
 
   useEffect(() => {
     let activo = true;
-    listUpcomingEvents()
-      .then((eventos) => {
-        if (activo) setProximoEvento(eventos[0] ?? null);
-      })
-      .catch(() => {
-        if (activo) setProximoEvento(null);
-      });
+
+    const cargarTodo = async () => {
+      const [, eventos, didYouKnow, mapuche, quizzes] = await Promise.all([
+        esProfesor
+          ? getTeacherDashboardStats(profile!.id).then((s) => {
+              if (activo) setStatsProfesor(s);
+            })
+          : Promise.resolve(),
+        listUpcomingEvents().then((e) => {
+          if (activo) setProximoEvento(e[0] ?? null);
+        }),
+        listDidYouKnow().then((d) => {
+          if (activo) setDatoDelDia(d[0] ?? null);
+        }),
+        listMapucheContent().then((c) => {
+          if (activo) setContenidoMapuche(c[0] ?? null);
+        }),
+        listPublishedQuizzes().then((q) => {
+          if (activo) setQuizDestacado(q[0] ?? null);
+        }),
+      ]);
+    };
+
+    if (!esProfesor && profile?.total_points !== undefined) {
+      setPuntos(profile.total_points);
+      setNivel(levelFromPoints(profile.total_points));
+    }
+
+    cargarTodo().catch(() => {});
+
     return () => {
       activo = false;
     };
   }, []);
+
+  const progreso = nivel > 0 ? (puntos % 100) : puntos;
+  const progresoPorcentaje = Math.min((progreso / 100) * 100, 100);
 
   return (
     <View style={styles.container}>
@@ -83,60 +120,66 @@ export default function InicioScreen() {
             </View>
             <View style={styles.levelProgressContainer}>
               <Text style={styles.levelTitle}>
-                {esProfesor ? 'ESTADO DEL CURSO' : 'NIVEL 2 · EXPLORADOR DEL HUMEDAL'}
+                {esProfesor
+                  ? `ESTADO DEL CURSO · ${statsProfesor?.estudiantes ?? 0} estudiantes`
+                  : `NIVEL ${nivel} · ${puntos} puntos`}
               </Text>
               <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: '60%' }]} />
+                <View style={[styles.progressBarFill, { width: `${esProfesor ? 100 : progresoPorcentaje}%` }]} />
               </View>
               <Text style={styles.progressText}>
-                {esProfesor ? '85% Alumnos Activos' : '120 / 200 puntos'}
+                {esProfesor
+                  ? `${statsProfesor?.estudiantes ?? 0} Alumnos · ${statsProfesor?.cursos ?? 0} Cursos`
+                  : `${puntos % 100} / 100 pts al siguiente nivel`}
               </Text>
             </View>
           </View>
 
           {/* Tarjeta Quiz Rápido */}
-          <View style={styles.cardQuiz}>
-            <Text style={styles.quizLabel}>QUIZ RÁPIDO</Text>
-            <Text style={styles.quizTitle}>Animales del humedal</Text>
-            <View style={styles.quizFooter}>
-              <View style={styles.quizBadge}>
-                <Text style={styles.quizBadgeText}>5 preguntas</Text>
+          {quizDestacado && (
+            <View style={styles.cardQuiz}>
+              <Text style={styles.quizLabel}>QUIZ RÁPIDO</Text>
+              <Text style={styles.quizTitle}>{quizDestacado.title}</Text>
+              <View style={styles.quizFooter}>
+                <View style={styles.quizBadge}>
+                  <Text style={styles.quizBadgeText}>{quizDestacado.description ?? 'Desafío rápido'}</Text>
+                </View>
+                <Text style={styles.quizPoints}>⭐ +{quizDestacado.points_reward} pts</Text>
+                <TouchableOpacity style={styles.playButton} onPress={() => router.push('/(tabs)/aulaverde')}>
+                  <Text style={styles.playButtonText}>Jugar →</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.quizPoints}>⭐ +50 pts</Text>
-              <TouchableOpacity style={styles.playButton} onPress={() => router.push('/(tabs)/aulaverde')}>
-                <Text style={styles.playButtonText}>Jugar →</Text>
-              </TouchableOpacity>
             </View>
-          </View>
+          )}
 
           {/* Sección ¿Sabías que...? */}
           <Text style={styles.sectionTitle}>¿Sabías que...?</Text>
           <Text style={styles.sectionSubtitle}>Un dato nuevo cada día</Text>
 
           {/* Tarjeta del Dato del Día */}
-          <View style={styles.cardData}>
-            <Text style={styles.dataLabel}>DATO DEL DÍA</Text>
-            <Text style={styles.dataText}>
-              ¿Sabías que los humedales filtran el agua de forma natural, como un gran riñón verde?
-            </Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/sabiasque')}>
-              <Text style={styles.viewMore}>Ver más datos ›</Text>
-            </TouchableOpacity>
-          </View>
+          {datoDelDia && (
+            <View style={styles.cardData}>
+              <Text style={styles.dataLabel}>DATO DEL DÍA</Text>
+              <Text style={styles.dataText}>{datoDelDia.content}</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/sabiasque')}>
+                <Text style={styles.viewMore}>Ver más datos ›</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* --- NUEVA SECCIÓN: CULTURA MAPUCHE --- */}
           <Text style={styles.sectionTitle}>Cultura Mapuche</Text>
           <Text style={styles.sectionSubtitle}>Sabiduría ancestral del territorio</Text>
 
-          <View style={styles.cardMapuche}>
-            <Text style={styles.mapucheLabel}>KIMÜN (CONOCIMIENTO)</Text>
-            <Text style={styles.mapucheText}>
-              Descubre cómo la cosmovisión mapuche coexiste con los ecosistemas, el respeto por el "Menoko" (humedal) y la naturaleza.
-            </Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/culturamapuche')}>
-              <Text style={styles.viewMoreMapuche}>Aprender más ›</Text>
-            </TouchableOpacity>
-          </View>
+          {contenidoMapuche && (
+            <View style={styles.cardMapuche}>
+              <Text style={styles.mapucheLabel}>KIMÜN (CONOCIMIENTO)</Text>
+              <Text style={styles.mapucheText}>{contenidoMapuche.content}</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/culturamapuche')}>
+                <Text style={styles.viewMoreMapuche}>Aprender más ›</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Próximo Evento */}
           <View style={styles.eventHeaderRow}>
@@ -308,6 +351,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    maxWidth: '40%',
   },
   quizBadgeText: {
     color: '#ffffff',
